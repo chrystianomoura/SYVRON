@@ -9,22 +9,32 @@ const BASELINE = {
 const RUNNING = {
   ...BASELINE,
 
-  // Same approved RUNNING personality.
-  // Only the temporal velocity increases.
-  speed: 3.45,
+  // Same approved movement language, only slightly faster.
+  speed: 3.72,
 };
 
 export class CreatureMotion {
   constructor() {
     this.state = "idle";
-    this.startedAt = performance.now();
-    this.lastNow = this.startedAt;
+
+    // Start the organism in a mature motion phase instead of phase zero.
+    // The approved baseline values are unchanged; this only prevents the
+    // first-load "cold start" from looking unusually slow.
+    const now = performance.now();
+    const initialPhaseOffsetSeconds = 17.4;
+
+    this.startedAt =
+      now -
+      initialPhaseOffsetSeconds * 1000;
+
+    this.lastNow = now;
 
     this.lapStartedAt = null;
     this.lapDuration = 1450;
 
-    // The organism now ENTERS the page already alive using
-    // the exact values of the previously approved RUNNING state.
+    this.resetStartedAt = null;
+    this.resetDuration = 820;
+
     this.current = {
       ...BASELINE,
 
@@ -32,6 +42,10 @@ export class CreatureMotion {
       wave: 0,
       contraction: 0,
       ignition: 0,
+      settle: 0,
+
+      resetProgress: -1,
+      resetPulse: 0,
     };
 
     this.target = {
@@ -62,7 +76,6 @@ export class CreatureMotion {
     }
 
     if (state === "idle") {
-      // READY / post-RESET returns to the approved old RUNNING values.
       this.target = {
         ...this.target,
         ...BASELINE,
@@ -72,24 +85,29 @@ export class CreatureMotion {
     }
 
     if (state === "pause") {
-      // PAUSE no longer nearly kills the organism.
-      // It settles gently back to its living baseline.
+      // PAUSE settles back to the living baseline.
       this.target = {
         ...this.target,
         ...BASELINE,
       };
 
-      // Very small organic response instead of a violent contraction.
+      // Softer than the previous behavior.
       this.current.contraction =
         Math.max(
           this.current.contraction,
-          0.045
+          0.030
+        );
+
+      this.current.settle =
+        Math.max(
+          this.current.settle,
+          0.028
         );
     }
   }
 
   lap(now = performance.now()) {
-    // LAP behavior intentionally preserved.
+    // LAP remains untouched.
     this.lapStartedAt = now;
     this.current.lapProgress = 0;
     this.current.wave = 1;
@@ -98,24 +116,48 @@ export class CreatureMotion {
   resume() {
     this.setState("running");
 
-    // Gentle re-acceleration cue.
-    // Previous value: 0.22.
+    // Gentle ignition cue.
     this.current.ignition =
       Math.max(
         this.current.ignition,
-        0.055
+        0.040
+      );
+
+    this.current.settle =
+      Math.max(
+        this.current.settle,
+        0.024
       );
   }
 
-  reset() {
+  reset(now = performance.now()) {
+    const wasPaused =
+      this.state === "pause";
+
     this.setState("idle");
 
-    // Small reorganization, then return to baseline life.
-    // Previous value: 0.20.
+    // Start a real timed RESET event.
+    // Coming from PAUSE makes it slightly more visible,
+    // but the animation remains soft and organic.
+    this.resetStartedAt = now;
+
+    this.current.resetProgress = 0;
+    this.current.resetPulse = 0;
+
     this.current.contraction =
       Math.max(
         this.current.contraction,
-        0.065
+        wasPaused
+          ? 0.060
+          : 0.040
+      );
+
+    this.current.settle =
+      Math.max(
+        this.current.settle,
+        wasPaused
+          ? 0.050
+          : 0.032
       );
   }
 
@@ -130,15 +172,12 @@ export class CreatureMotion {
 
     this.lastNow = now;
 
-    // Smoother biological inertia.
-    // RUNNING still responds clearly, but PAUSE / RESET / RESUME
-    // no longer snap between radically different energy levels.
     const response =
       this.state === "running"
-        ? 1.05
+        ? 1.00
         : this.state === "pause"
-          ? 0.72
-          : 0.82;
+          ? 0.68
+          : 0.78;
 
     const smoothing =
       1 -
@@ -204,17 +243,62 @@ export class CreatureMotion {
       }
     }
 
-    // Softer one-shot reactions.
+    if (
+      this.resetStartedAt !==
+      null
+    ) {
+      const progress =
+        (
+          now -
+          this.resetStartedAt
+        ) /
+        this.resetDuration;
+
+      if (progress >= 1) {
+        this.resetStartedAt = null;
+        this.current.resetProgress = -1;
+        this.current.resetPulse = 0;
+      } else {
+        this.current.resetProgress =
+          progress;
+
+        // Smooth 0 -> 1 -> 0 pulse.
+        // sin(pi * progress) guarantees a visible middle peak.
+        const pulse =
+          Math.sin(
+            Math.PI *
+            progress
+          );
+
+        // Ease the pulse slightly so the beginning/end feel organic.
+        this.current.resetPulse =
+          Math.pow(
+            Math.max(
+              0,
+              pulse
+            ),
+            1.15
+          );
+      }
+    }
+
+    // Softer decay for action manifestations.
     this.current.ignition *=
       Math.exp(
         -dt *
-        2.0
+        1.85
       );
 
     this.current.contraction *=
       Math.exp(
         -dt *
-        1.8
+        1.55
+      );
+
+    this.current.settle *=
+      Math.exp(
+        -dt *
+        1.45
       );
 
     this.current.time =

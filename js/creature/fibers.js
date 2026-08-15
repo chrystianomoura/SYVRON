@@ -113,6 +113,7 @@ export class FiberField {
     const lapProgress = motion.lapProgress ?? -1;
     const ignition = motion.ignition ?? 0;
     const contraction = motion.contraction ?? 0;
+    const resetPulse = motion.resetPulse ?? 0;
 
     const twist = twistAmount(u);
     let lane = fiber.lane;
@@ -169,6 +170,34 @@ export class FiberField {
       Math.sin(u * TAU * 6 + fiber.phase3 + time * 2.8) *
       0.030 *
       ignition;
+
+    // Timed RESET event:
+    // coherent inward reorganization + soft secondary ripple.
+    lane +=
+      Math.sin(
+        u * TAU * 2.0 +
+        fiber.phase2 * 0.30 +
+        time * 0.55
+      ) *
+      0.145 *
+      resetPulse *
+      seamContinuityWeight(u, 0.060);
+
+    lane +=
+      Math.sin(
+        u * TAU * 4.0 -
+        fiber.phase1 * 0.20 -
+        time * 0.42
+      ) *
+      0.055 *
+      resetPulse *
+      seamContinuityWeight(u, 0.060);
+
+    // Gentle inward pull at the middle of the reset.
+    lane +=
+      (0.5 - lane) *
+      0.14 *
+      resetPulse;
 
     const lowerEnvelope = angularWindow(u, 0.605, 0.155);
 
@@ -275,6 +304,30 @@ export class FiberField {
       ) *
       shared.ignitionAmplitude;
 
+    // Timed RESET event:
+    // guaranteed visible peak halfway through resetDuration.
+    lane +=
+      Math.sin(
+        sample.uTau * 2.0 +
+        fiber.phase2 * 0.30 +
+        shared.resetTimePrimary
+      ) *
+      shared.resetAmplitudePrimary *
+      sample.seam;
+
+    lane +=
+      Math.sin(
+        sample.uTau * 4.0 -
+        fiber.phase1 * 0.20 -
+        shared.resetTimeSecondary
+      ) *
+      shared.resetAmplitudeSecondary *
+      sample.seam;
+
+    lane +=
+      (0.5 - lane) *
+      shared.resetPull;
+
     if (sample.lowerEnvelope > 0) {
       const spread =
         1 +
@@ -338,6 +391,7 @@ export class FiberField {
     const lapProgress = motion.lapProgress ?? -1;
     const ignition = motion.ignition ?? 0;
     const contraction = motion.contraction ?? 0;
+    const resetPulse = motion.resetPulse ?? 0;
 
     const shared = {
       phaseDriftBase:
@@ -400,6 +454,24 @@ export class FiberField {
       contractionFactor:
         0.62 *
         contraction,
+
+      resetTimePrimary:
+        time * 0.55,
+
+      resetTimeSecondary:
+        time * 0.42,
+
+      resetAmplitudePrimary:
+        0.145 *
+        resetPulse,
+
+      resetAmplitudeSecondary:
+        0.055 *
+        resetPulse,
+
+      resetPull:
+        0.14 *
+        resetPulse,
     };
 
     const tangentPhase =
