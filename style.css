@@ -1160,3 +1160,55 @@ button {
     min-height: 40px;
   }
 }
+
+
+/* =========================================================
+   BEST LAP — VISUAL EMPHASIS
+========================================================= */
+
+.lap-item.is-best::after {
+  right: 10px;
+  bottom: 2px;
+  font-size: 0.56rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  color: rgba(207, 157, 255, 0.92);
+  text-shadow: 0 0 10px rgba(190, 122, 255, 0.30);
+}
+
+
+/* =========================================================
+   LAPS — BEST ROW SPACING + EMPTY STATE READABILITY
+========================================================= */
+
+/* Give the best-lap row enough vertical room for the BEST label. */
+.lap-item.is-best {
+  min-height: 56px;
+  padding-bottom: 7px;
+}
+
+/* Keep BEST away from the bottom divider. */
+.lap-item.is-best::after {
+  right: 10px;
+  bottom: 7px;
+}
+
+/* Preserve the left accent while giving it a little more breathing room. */
+.lap-item.is-best::before {
+  top: 48%;
+  height: 50%;
+}
+
+/* Stronger and more readable empty-state copy. */
+.laps-empty strong {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #d9cce2;
+}
+
+.laps-empty small {
+  max-width: 190px;
+  font-size: 0.72rem;
+  line-height: 1.65;
+  color: #93859d;
+}
