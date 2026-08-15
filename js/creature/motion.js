@@ -9,8 +9,8 @@ const BASELINE = {
 const RUNNING = {
   ...BASELINE,
 
-  // Same approved movement language, only slightly faster.
-  speed: 3.72,
+  // Same approved movement language, only faster.
+  speed: 5.5,
 };
 
 export class CreatureMotion {
@@ -114,7 +114,7 @@ export class CreatureMotion {
     /*
       RESET must always begin from the same movement base.
 
-      RUNNING uses speed 3.72, while the living baseline
+      RUNNING uses a higher speed, while the living baseline
       uses speed 2.35. Without this normalization,
       RUNNING -> RESET carries the faster motion into
       the reset pulse and makes the reaction much more
