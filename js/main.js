@@ -77,6 +77,16 @@ const statsView =
 
 let lastRenderedCentisecond = -1;
 
+let animationFrameId = null;
+let lastCreatureFrame = 0;
+let lastAmbientFrame = 0;
+
+const FRAME_60 =
+  1000 / 60;
+
+const FRAME_30 =
+  1000 / 30;
+
 function resizeVisuals() {
   renderer.setLayout({
     x: 0.5,
@@ -86,43 +96,99 @@ function resizeVisuals() {
 
   renderer.resize();
   ambientParticles.resize();
+
+  lastCreatureFrame = 0;
+  lastAmbientFrame = 0;
 }
 
 function frame(now) {
-  const time =
-    now / 1000;
-
-  ambientParticles.render(time);
-
-  motion.update(now);
-  renderer.render(motion.current);
-
-  const elapsed =
-    timer.getElapsed(now);
-
-  const centisecond =
-    Math.floor(
-      elapsed / 10
-    );
-
   if (
-    centisecond !==
-    lastRenderedCentisecond
+    now - lastAmbientFrame >=
+    FRAME_30
   ) {
-    lastRenderedCentisecond =
-      centisecond;
-
-    timerDisplay.value =
-      formatTime(elapsed);
-
-    statsView.render(
-      elapsed,
-      timer.laps,
-      timer.getBestLap()
+    ambientParticles.render(
+      now / 1000
     );
+
+    lastAmbientFrame = now;
   }
 
-  requestAnimationFrame(frame);
+  if (
+    now - lastCreatureFrame >=
+    FRAME_60
+  ) {
+    motion.update(now);
+    renderer.render(
+      motion.current
+    );
+
+    lastCreatureFrame = now;
+  }
+
+  if (
+    timer.state === "running"
+  ) {
+    const elapsed =
+      timer.getElapsed(now);
+
+    const centisecond =
+      Math.floor(
+        elapsed / 10
+      );
+
+    if (
+      centisecond !==
+      lastRenderedCentisecond
+    ) {
+      lastRenderedCentisecond =
+        centisecond;
+
+      timerDisplay.value =
+        formatTime(elapsed);
+
+      statsView.render(
+        elapsed,
+        timer.laps,
+        timer.getBestLap()
+      );
+    }
+  }
+
+  animationFrameId =
+    requestAnimationFrame(
+      frame
+    );
+}
+
+function startAnimationLoop() {
+  if (
+    animationFrameId !== null ||
+    document.hidden
+  ) {
+    return;
+  }
+
+  lastCreatureFrame = 0;
+  lastAmbientFrame = 0;
+
+  animationFrameId =
+    requestAnimationFrame(
+      frame
+    );
+}
+
+function stopAnimationLoop() {
+  if (
+    animationFrameId === null
+  ) {
+    return;
+  }
+
+  cancelAnimationFrame(
+    animationFrameId
+  );
+
+  animationFrameId = null;
 }
 
 function handleStartOrResume() {
@@ -172,6 +238,20 @@ function handlePause() {
 
   motion.setState(
     "pause"
+  );
+
+  const pausedElapsed =
+    timer.getElapsed();
+
+  timerDisplay.value =
+    formatTime(
+      pausedElapsed
+    );
+
+  statsView.render(
+    pausedElapsed,
+    timer.laps,
+    timer.getBestLap()
   );
 
   syncControls();
@@ -363,6 +443,21 @@ window.addEventListener(
   }
 );
 
+document.addEventListener(
+  "visibilitychange",
+  () => {
+    if (document.hidden) {
+      stopAnimationLoop();
+      return;
+    }
+
+    motion.lastNow =
+      performance.now();
+
+    startAnimationLoop();
+  }
+);
+
 window.addEventListener(
   "resize",
   resizeVisuals
@@ -372,4 +467,4 @@ resizeVisuals();
 renderLapData();
 syncControls();
 
-requestAnimationFrame(frame);
+startAnimationLoop();

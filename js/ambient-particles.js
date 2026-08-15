@@ -1,23 +1,51 @@
 export class AmbientParticles {
   constructor(canvas) {
     this.canvas = canvas;
-    this.ctx = canvas.getContext("2d");
+    this.ctx = canvas.getContext("2d", {
+      alpha: true,
+      desynchronized: true,
+    });
+
+    this.staticCanvas = document.createElement("canvas");
+    this.staticCtx = this.staticCanvas.getContext("2d", {
+      alpha: true,
+      desynchronized: true,
+    });
 
     this.width = 1;
     this.height = 1;
     this.dpr = 1;
 
-    this.particles = [];
+    this.staticParticles = [];
+    this.movingParticles = [];
+
     this.seed = 497123;
   }
 
   resize() {
-    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.dpr = Math.min(
+      window.devicePixelRatio || 1,
+      1.25
+    );
+
     this.width = window.innerWidth;
     this.height = window.innerHeight;
 
-    this.canvas.width = Math.round(this.width * this.dpr);
-    this.canvas.height = Math.round(this.height * this.dpr);
+    const pixelWidth = Math.max(
+      1,
+      Math.round(this.width * this.dpr)
+    );
+
+    const pixelHeight = Math.max(
+      1,
+      Math.round(this.height * this.dpr)
+    );
+
+    this.canvas.width = pixelWidth;
+    this.canvas.height = pixelHeight;
+
+    this.staticCanvas.width = pixelWidth;
+    this.staticCanvas.height = pixelHeight;
 
     this.ctx.setTransform(
       this.dpr,
@@ -28,105 +56,127 @@ export class AmbientParticles {
       0
     );
 
+    this.staticCtx.setTransform(
+      this.dpr,
+      0,
+      0,
+      this.dpr,
+      0,
+      0
+    );
+
     this.createParticles();
+    this.renderStaticLayer();
+    this.render(0);
   }
 
   createParticles() {
     const rng = mulberry32(this.seed);
 
-    const area =
-      this.width *
-      this.height;
+    const area = this.width * this.height;
 
-    const count =
-      Math.round(
-        Math.max(
-          620,
-          Math.min(
-            1180,
-            area / 1750
-          )
+    const count = Math.round(
+      Math.max(
+        620,
+        Math.min(
+          1180,
+          area / 1750
         )
-      );
+      )
+    );
 
-    this.particles =
-      Array.from(
-        { length: count },
-        (_, index) => {
-          const bright =
-            rng() > 0.79;
+    const particles = Array.from(
+      { length: count },
+      (_, index) => {
+        const bright = rng() > 0.79;
 
-          return {
-            x: rng(),
-            y: rng(),
+        const hue = lerp(
+          263,
+          283,
+          rng()
+        );
 
-            radius:
-              bright
-                ? lerp(0.85, 1.80, rng())
-                : lerp(0.20, 0.78, rng()),
+        const saturation = lerp(
+          72,
+          100,
+          rng()
+        );
 
-            alpha:
-              bright
-                ? lerp(0.32, 0.68, rng())
-                : lerp(0.060, 0.23, rng()),
+        const lightness = bright
+          ? lerp(60, 76, rng())
+          : lerp(48, 66, rng());
 
-            phase:
-              rng() *
-              Math.PI *
-              2,
+        const alpha = bright
+          ? lerp(0.32, 0.68, rng())
+          : lerp(0.060, 0.23, rng());
 
-            speed:
-              lerp(
-                0.08,
-                0.22,
-                rng()
-              ),
+        return {
+          x: rng(),
+          y: rng(),
 
-            drift:
-              lerp(
-                3,
-                14,
-                rng()
-              ),
+          radius: bright
+            ? lerp(0.85, 1.80, rng())
+            : lerp(0.20, 0.78, rng()),
 
-            depth:
-              lerp(
-                0.55,
-                1,
-                rng()
-              ),
+          alpha,
 
-            cluster:
-              rng(),
+          phase:
+            rng() *
+            Math.PI *
+            2,
 
-            hue:
-              lerp(
-                263,
-                283,
-                rng()
-              ),
+          speed: lerp(
+            0.08,
+            0.22,
+            rng()
+          ),
 
-            saturation:
-              lerp(
-                72,
-                100,
-                rng()
-              ),
+          drift: lerp(
+            3,
+            14,
+            rng()
+          ),
 
-            lightness:
-              bright
-                ? lerp(60, 76, rng())
-                : lerp(48, 66, rng()),
+          depth: lerp(
+            0.55,
+            1,
+            rng()
+          ),
 
-            index,
-          };
-        }
-      );
+          cluster: rng(),
+
+          hue,
+          saturation,
+          lightness,
+
+          fill:
+            `hsla(${hue},${saturation}%,${lightness}%,${alpha})`,
+
+          shadow:
+            `hsla(${hue},95%,68%,${alpha * 0.55})`,
+
+          index,
+        };
+      }
+    );
+
+    const movingCount = Math.max(
+      110,
+      Math.round(count * 0.22)
+    );
+
+    this.movingParticles = particles.slice(
+      0,
+      movingCount
+    );
+
+    this.staticParticles = particles.slice(
+      movingCount
+    );
   }
 
-  render(time) {
-    const ctx =
-      this.ctx;
+  renderStaticLayer() {
+    const ctx = this.staticCtx;
 
     ctx.clearRect(
       0,
@@ -137,48 +187,73 @@ export class AmbientParticles {
 
     ctx.save();
 
-    ctx.globalCompositeOperation =
-      "screen";
+    ctx.globalCompositeOperation = "screen";
 
-    for (
-      const particle
-      of this.particles
-    ) {
+    for (const particle of this.staticParticles) {
+      const position =
+        this.getClusteredPosition(particle);
+
+      ctx.fillStyle = particle.fill;
+
+      if (particle.radius > 0.95) {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = particle.shadow;
+      } else {
+        ctx.shadowBlur = 0;
+      }
+
+      ctx.beginPath();
+
+      ctx.arc(
+        position.x,
+        position.y,
+        particle.radius,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  render(time) {
+    const ctx = this.ctx;
+
+    ctx.clearRect(
+      0,
+      0,
+      this.width,
+      this.height
+    );
+
+    ctx.drawImage(
+      this.staticCanvas,
+      0,
+      0,
+      this.staticCanvas.width,
+      this.staticCanvas.height,
+      0,
+      0,
+      this.width,
+      this.height
+    );
+
+    ctx.save();
+
+    ctx.globalCompositeOperation = "screen";
+
+    for (const particle of this.movingParticles) {
+      const base =
+        this.getClusteredPosition(particle);
+
       const motion =
         time *
         particle.speed;
 
-      const clusterX =
-        particle.cluster < 0.38
-          ? this.width * 0.50
-          : particle.cluster < 0.62
-            ? this.width * 0.24
-            : this.width * 0.77;
-
-      const clusterY =
-        particle.cluster < 0.38
-          ? this.height * 0.46
-          : particle.cluster < 0.62
-            ? this.height * 0.62
-            : this.height * 0.31;
-
-      const clusterPull =
-        particle.cluster < 0.72
-          ? 0.13
-          : 0;
-
-      const baseX =
-        particle.x *
-        this.width;
-
-      const baseY =
-        particle.y *
-        this.height;
-
       const x =
-        baseX +
-        (clusterX - baseX) *
-          clusterPull +
+        base.x +
         Math.sin(
           motion +
           particle.phase
@@ -187,9 +262,7 @@ export class AmbientParticles {
           particle.depth;
 
       const y =
-        baseY +
-        (clusterY - baseY) *
-          clusterPull +
+        base.y +
         Math.cos(
           motion * 0.83 +
           particle.phase
@@ -210,9 +283,8 @@ export class AmbientParticles {
         `hsla(${particle.hue},${particle.saturation}%,${particle.lightness}%,${particle.alpha * pulse})`;
 
       if (particle.radius > 0.95) {
-        ctx.shadowBlur = 10;
-        ctx.shadowColor =
-          `hsla(${particle.hue},95%,68%,${particle.alpha * 0.55})`;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = particle.shadow;
       } else {
         ctx.shadowBlur = 0;
       }
@@ -231,6 +303,47 @@ export class AmbientParticles {
     }
 
     ctx.restore();
+  }
+
+  getClusteredPosition(particle) {
+    const clusterX =
+      particle.cluster < 0.38
+        ? this.width * 0.50
+        : particle.cluster < 0.62
+          ? this.width * 0.24
+          : this.width * 0.77;
+
+    const clusterY =
+      particle.cluster < 0.38
+        ? this.height * 0.46
+        : particle.cluster < 0.62
+          ? this.height * 0.62
+          : this.height * 0.31;
+
+    const clusterPull =
+      particle.cluster < 0.72
+        ? 0.13
+        : 0;
+
+    const baseX =
+      particle.x *
+      this.width;
+
+    const baseY =
+      particle.y *
+      this.height;
+
+    return {
+      x:
+        baseX +
+        (clusterX - baseX) *
+          clusterPull,
+
+      y:
+        baseY +
+        (clusterY - baseY) *
+          clusterPull,
+    };
   }
 }
 
