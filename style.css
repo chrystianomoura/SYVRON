@@ -1212,3 +1212,891 @@ button {
   line-height: 1.65;
   color: #93859d;
 }
+
+
+/* =========================================================
+   RESPONSIVE 00 — WORKSPACE FLUIDA / TABLET HORIZONTAL
+   ---------------------------------------------------------
+   A viewport define uma área segura centralizada. Dentro dela,
+   os dois painéis laterais e o palco central dividem o espaço
+   disponível sem ultrapassar as bordas. O empilhamento só
+   começa abaixo de 800px.
+========================================================= */
+
+@media (min-width: 800px) and (max-width: 1399px) {
+  html,
+  body {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .desktop-header {
+    padding-left: clamp(22px, 3vw, 38px);
+    padding-right: clamp(22px, 3vw, 38px);
+  }
+
+  .brand__name {
+    font-size: clamp(2.65rem, 4.4vw, 4rem);
+  }
+
+  .desktop-workspace {
+    width: calc(100% - clamp(28px, 4vw, 52px));
+    max-width: 1320px;
+    min-width: 0;
+    margin-inline: auto;
+    padding: 0 0 20px;
+
+    grid-template-columns:
+      minmax(155px, 0.72fr)
+      minmax(0, 2fr)
+      minmax(155px, 0.72fr);
+
+    gap: clamp(12px, 1.55vw, 22px);
+  }
+
+  .panel,
+  .panel--stats,
+  .panel--laps {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: clamp(286px, 29vw, 330px);
+    min-height: clamp(286px, 29vw, 330px);
+    max-height: clamp(286px, 29vw, 330px);
+    overflow: hidden;
+  }
+
+  .panel--stats {
+    padding: clamp(16px, 1.7vw, 21px) clamp(10px, 1.45vw, 18px) 15px;
+  }
+
+  .panel--laps {
+    padding: clamp(16px, 1.7vw, 21px) clamp(10px, 1.35vw, 15px) 13px;
+  }
+
+  .panel__eyebrow {
+    font-size: clamp(0.52rem, 0.72vw, 0.62rem);
+  }
+
+  .panel__header h2 {
+    font-size: clamp(0.90rem, 1.25vw, 1.08rem);
+  }
+
+  .panel--stats .panel__header,
+  .panel--laps .panel__header {
+    min-height: clamp(42px, 4.4vw, 50px);
+  }
+
+  .panel--stats .stats-grid {
+    height: calc(100% - clamp(42px, 4.4vw, 50px));
+  }
+
+  .panel--stats .stat dt {
+    margin-bottom: clamp(5px, 0.6vw, 7px);
+    font-size: clamp(0.58rem, 0.78vw, 0.70rem);
+  }
+
+  .panel--stats .stat dd {
+    font-size: clamp(1.02rem, 1.55vw, 1.28rem);
+  }
+
+  .panel__count {
+    min-width: 26px;
+    padding: 4px 7px;
+    font-size: 0.54rem;
+  }
+
+  .laps-empty {
+    min-width: 0;
+    gap: 6px;
+    padding: 14px 6px;
+  }
+
+  .laps-empty__icon {
+    font-size: clamp(1.45rem, 2vw, 1.75rem);
+  }
+
+  .laps-empty strong {
+    max-width: 100%;
+    font-size: clamp(0.68rem, 0.9vw, 0.80rem);
+  }
+
+  .laps-empty small {
+    width: 100%;
+    max-width: 150px;
+    padding-inline: 2px;
+    overflow-wrap: break-word;
+    font-size: clamp(0.56rem, 0.74vw, 0.66rem);
+    line-height: 1.5;
+  }
+
+  .center-stage {
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .creature-frame {
+    top: 43%;
+    width: min(86.5%, 575px);
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .timer-readout {
+    top: 41%;
+    max-width: 92%;
+  }
+
+  .timer-readout__label {
+    margin-bottom: 10px;
+    font-size: clamp(0.58rem, 0.78vw, 0.68rem);
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.65rem, 4.7vw, 4.65rem);
+  }
+
+  .timer-readout__status {
+    margin-top: 10px;
+    font-size: clamp(0.49rem, 0.66vw, 0.57rem);
+  }
+
+  .controls {
+    bottom: clamp(14px, 2vh, 24px);
+    width: min(520px, calc(100% - 12px));
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .control {
+    height: clamp(50px, 5vw, 58px);
+    font-size: clamp(0.49rem, 0.68vw, 0.56rem);
+  }
+
+  .control__symbol {
+    font-size: clamp(0.84rem, 1.15vw, 0.98rem);
+  }
+}
+
+/* Tablet estreito: mesma linha, com margens e cards menores. */
+@media (min-width: 800px) and (max-width: 999px) {
+  .desktop-app {
+    grid-template-rows: 82px minmax(0, 1fr);
+  }
+
+  .desktop-header {
+    padding-top: 8px;
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .brand__name {
+    font-size: clamp(2.3rem, 4.8vw, 2.9rem);
+  }
+
+  .brand__meta {
+    font-size: 0.56rem;
+  }
+
+  .desktop-workspace {
+    width: calc(100% - 20px);
+    padding: 0 0 14px;
+    grid-template-columns:
+      minmax(132px, 0.66fr)
+      minmax(0, 2fr)
+      minmax(132px, 0.66fr);
+    gap: clamp(7px, 1vw, 10px);
+  }
+
+  .panel,
+  .panel--stats,
+  .panel--laps {
+    height: clamp(250px, 31vw, 290px);
+    min-height: clamp(250px, 31vw, 290px);
+    max-height: clamp(250px, 31vw, 290px);
+    border-radius: 15px;
+  }
+
+  .panel--stats {
+    padding: 14px 9px 12px;
+  }
+
+  .panel--laps {
+    padding: 14px 8px 11px;
+  }
+
+  .panel__eyebrow {
+    font-size: 0.49rem;
+    letter-spacing: 0.18em;
+  }
+
+  .panel__header h2 {
+    font-size: 0.86rem;
+  }
+
+  .panel--stats .panel__header,
+  .panel--laps .panel__header {
+    min-height: 39px;
+  }
+
+  .panel--stats .stats-grid {
+    height: calc(100% - 39px);
+  }
+
+  .panel--stats .stat dt {
+    margin-bottom: 4px;
+    font-size: 0.55rem;
+  }
+
+  .panel--stats .stat dd {
+    font-size: clamp(0.88rem, 1.75vw, 1.03rem);
+  }
+
+  .panel__count {
+    right: -1px;
+    min-width: 23px;
+    padding: 3px 6px;
+    font-size: 0.49rem;
+  }
+
+  .laps-empty {
+    padding-inline: 3px;
+  }
+
+  .laps-empty__icon {
+    font-size: 1.35rem;
+  }
+
+  .laps-empty strong {
+    font-size: 0.64rem;
+  }
+
+  .laps-empty small {
+    max-width: 116px;
+    font-size: 0.51rem;
+    line-height: 1.42;
+  }
+
+  .creature-frame {
+    width: min(88.5%, 470px);
+  }
+
+  .timer-readout__label {
+    margin-bottom: 8px;
+    font-size: 0.54rem;
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.25rem, 4.9vw, 3.20rem);
+  }
+
+  .timer-readout__status {
+    margin-top: 8px;
+    font-size: 0.46rem;
+  }
+
+  .controls {
+    bottom: 14px;
+    width: min(440px, calc(100% - 8px));
+    padding: 5px;
+    gap: 4px;
+  }
+
+  .control {
+    height: 48px;
+    font-size: 0.47rem;
+  }
+
+  .control__symbol {
+    height: 15px;
+    font-size: 0.80rem;
+    line-height: 15px;
+  }
+}
+
+@media (max-width: 799px) {
+  html,
+  body {
+    min-width: 0;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body {
+    background:
+      radial-gradient(circle at 50% 26%, rgba(78, 24, 131, 0.13), transparent 27rem),
+      linear-gradient(180deg, #040206 0%, #020103 72%);
+  }
+
+  .desktop-app {
+    width: 100%;
+    min-height: 100svh;
+    height: auto;
+    display: block;
+  }
+
+  .desktop-header {
+    min-height: 0;
+    justify-content: center;
+    padding: 28px 20px 6px;
+    text-align: center;
+  }
+
+  .brand {
+    align-items: center;
+    gap: 9px;
+  }
+
+  .brand__name {
+    font-size: clamp(2.55rem, 12vw, 3.7rem);
+    letter-spacing: 0.13em;
+  }
+
+  .brand__meta {
+    margin: 0;
+    font-size: clamp(0.58rem, 2.2vw, 0.67rem);
+    letter-spacing: 0.25em;
+  }
+
+  .desktop-workspace {
+    width: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+    padding: 0 16px 28px;
+  }
+
+  .center-stage {
+    order: 1;
+    position: relative;
+    width: 100%;
+    min-width: 0;
+    min-height: calc(100svh - 112px);
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    align-items: stretch;
+    overflow: visible;
+  }
+
+  .creature-frame {
+    position: absolute;
+    left: 50%;
+    top: 43%;
+    width: min(94vw, 520px);
+    height: auto;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+  }
+
+  .timer-readout {
+    top: 41%;
+  }
+
+  .timer-readout__label {
+    margin-bottom: 11px;
+    font-size: clamp(0.62rem, 2.5vw, 0.72rem);
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.85rem, 13vw, 4.35rem);
+  }
+
+  .timer-readout__status {
+    margin-top: 11px;
+    font-size: clamp(0.53rem, 2.2vw, 0.60rem);
+  }
+
+  .controls {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    align-self: end;
+    justify-self: center;
+    width: min(92vw, 430px);
+    margin: 0 auto 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    padding: 7px;
+    border-radius: 26px;
+    transform: none;
+  }
+
+  .control {
+    height: 58px;
+    border-radius: 20px;
+  }
+
+  .control:hover:not(:disabled),
+  .control--primary:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .control:active:not(:disabled),
+  .control--primary:active:not(:disabled) {
+    transform: scale(0.985);
+  }
+
+  .panel,
+  .panel--stats,
+  .panel--laps {
+    width: 100%;
+    max-width: 560px;
+    margin-inline: auto;
+  }
+
+  .panel--stats {
+    order: 2;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    padding: 21px 18px 18px;
+  }
+
+  .panel--stats .panel__header {
+    min-height: 52px;
+  }
+
+  .panel--stats .stats-grid {
+    height: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: none;
+    gap: 0;
+  }
+
+  .panel--stats .stat {
+    min-width: 0;
+    min-height: 92px;
+    padding: 12px 10px;
+    justify-content: center;
+    border-right: 1px solid var(--panel-line-soft);
+    border-bottom: 0;
+  }
+
+  .panel--stats .stat:last-child {
+    border-right: 0;
+  }
+
+  .panel--stats .stat dt {
+    margin-bottom: 8px;
+    font-size: clamp(0.61rem, 2.2vw, 0.72rem);
+    line-height: 1.3;
+  }
+
+  .panel--stats .stat dd {
+    font-size: clamp(1.03rem, 4vw, 1.30rem);
+    white-space: nowrap;
+  }
+
+  .panel--laps {
+    order: 3;
+    height: min(370px, 52vh);
+    min-height: 300px;
+    max-height: 370px;
+  }
+
+  .laps-empty {
+    min-height: 190px;
+  }
+
+  .lap-item {
+    min-height: 48px;
+  }
+
+  .lap-item.is-best {
+    min-height: 58px;
+  }
+}
+
+@media (max-width: 479px) {
+  .desktop-header {
+    padding-top: 24px;
+  }
+
+  .brand__name {
+    font-size: clamp(2.25rem, 12.8vw, 3rem);
+    letter-spacing: 0.115em;
+  }
+
+  .brand__meta {
+    font-size: 0.56rem;
+    letter-spacing: 0.21em;
+  }
+
+  .desktop-workspace {
+    gap: 16px;
+    padding-inline: 12px;
+    padding-bottom: 22px;
+  }
+
+  .center-stage {
+    min-height: calc(100svh - 104px);
+  }
+
+  .creature-frame {
+    top: 42%;
+    width: min(96vw, 460px);
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .timer-readout {
+    top: 40.5%;
+  }
+
+  .timer-readout__label {
+    margin-bottom: 9px;
+    font-size: 0.60rem;
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.55rem, 13.2vw, 3.45rem);
+  }
+
+  .timer-readout__status {
+    margin-top: 9px;
+    font-size: 0.52rem;
+  }
+
+  .controls {
+    width: calc(100% - 4px);
+    gap: 6px;
+    padding: 6px;
+    border-radius: 23px;
+  }
+
+  .control {
+    height: 54px;
+    border-radius: 17px;
+    font-size: 0.54rem;
+  }
+
+  .control__symbol {
+    height: 16px;
+    font-size: 0.94rem;
+    line-height: 16px;
+  }
+
+  .panel {
+    border-radius: 16px;
+  }
+
+  .panel--stats {
+    padding-inline: 12px;
+  }
+
+  .panel--stats .stat {
+    min-height: 88px;
+    padding-inline: 6px;
+  }
+
+  .panel--stats .stat dt {
+    font-size: 0.60rem;
+  }
+
+  .panel--stats .stat dd {
+    font-size: clamp(0.92rem, 4.7vw, 1.12rem);
+  }
+
+  .panel--laps {
+    min-height: 290px;
+    padding-inline: 14px;
+  }
+}
+
+@media (max-width: 359px) {
+  .brand__name {
+    font-size: 2.05rem;
+  }
+
+  .brand__meta {
+    font-size: 0.50rem;
+  }
+
+  .center-stage {
+    min-height: calc(100svh - 98px);
+  }
+
+  .timer-readout__time {
+    font-size: 2.35rem;
+  }
+
+  .panel--stats .stat dd {
+    font-size: 0.86rem;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE 06 — FINAL ALIGNMENT & PRIMARY INTERACTION
+   ---------------------------------------------------------
+   Uma única referência vertical centraliza criatura e timer.
+   O botão primário usa o mesmo acabamento em todas as telas,
+   com hover restrito a dispositivos que realmente possuem
+   ponteiro e feedback de toque via :active no mobile.
+========================================================= */
+
+/* ---------- SHARED ORGANISM / TIMER CENTER ---------- */
+
+.center-stage {
+  --organism-center-y: 43%;
+}
+
+.creature-frame,
+.timer-readout {
+  top: var(--organism-center-y);
+}
+
+/* Em celulares estreitos, a composição inteira sobe levemente,
+   mas criatura e cronômetro continuam compartilhando o mesmo centro. */
+@media (max-width: 479px) {
+  .center-stage {
+    --organism-center-y: 42%;
+  }
+}
+
+/* ---------- PRIMARY CONTROL: START / RESUME ---------- */
+
+.control--primary {
+  color: #f8f2fc;
+  border-color: rgba(190, 132, 246, 0.30);
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(176, 112, 232, 0.16),
+      transparent 74%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(96, 43, 147, 0.76),
+      rgba(57, 23, 92, 0.72)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.055),
+    inset 0 0 16px rgba(180, 112, 236, 0.025),
+    0 5px 16px rgba(95, 42, 145, 0.07);
+  text-shadow: none;
+}
+
+.control--primary .control__symbol,
+.control--primary span:last-child {
+  color: #f5eaff;
+  text-shadow: none;
+}
+
+/* Hover só existe onde hover real existe.
+   Isso evita o efeito "preso" depois de tocar no botão em celulares. */
+@media (hover: hover) and (pointer: fine) {
+  .control--primary:hover:not(:disabled) {
+    transform: scale(1.012);
+    color: #fffaff;
+    border-color: rgba(205, 157, 250, 0.46);
+    background:
+      radial-gradient(
+        circle at 50% 0%,
+        rgba(190, 131, 241, 0.23),
+        transparent 76%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(108, 49, 162, 0.82),
+        rgba(63, 26, 101, 0.78)
+      );
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.075),
+      inset 0 0 18px rgba(189, 126, 240, 0.04),
+      0 7px 20px rgba(111, 52, 163, 0.10);
+    text-shadow: none;
+  }
+
+  .control--primary:hover:not(:disabled) .control__symbol,
+  .control--primary:hover:not(:disabled) span:last-child {
+    color: #fffaff;
+    text-shadow: 0 0 6px rgba(201, 153, 247, 0.10);
+  }
+}
+
+.control--primary:focus-visible:not(:disabled) {
+  transform: none;
+  border-color: rgba(212, 169, 255, 0.58);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 0 0 2px rgba(174, 111, 231, 0.13),
+    0 5px 16px rgba(95, 42, 145, 0.07);
+}
+
+.control--primary:active:not(:disabled) {
+  transform: scale(0.985);
+  border-color: rgba(202, 150, 248, 0.42);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(78, 32, 122, 0.78),
+      rgba(51, 20, 82, 0.76)
+    );
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.16),
+    0 2px 8px rgba(78, 33, 119, 0.06);
+  transition-duration: 55ms;
+}
+
+/* =========================================================
+   RESPONSIVE 07 — MOBILE TIMER FIT
+   ---------------------------------------------------------
+   Mantém o mesmo centro da criatura e reduz somente a escala
+   do conjunto do cronômetro para que ele respire dentro do
+   vão interno, sem tocar visualmente nas fibras laterais.
+========================================================= */
+
+@media (max-width: 799px) {
+  .timer-readout {
+    width: min(78vw, 360px);
+    max-width: 78vw;
+  }
+
+  .timer-readout__label {
+    margin-bottom: 9px;
+    font-size: clamp(0.58rem, 2.15vw, 0.66rem);
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.45rem, 10.6vw, 3.55rem);
+    line-height: 0.92;
+    letter-spacing: -0.06em;
+    white-space: nowrap;
+  }
+
+  .timer-readout__status {
+    margin-top: 9px;
+    font-size: clamp(0.50rem, 1.95vw, 0.56rem);
+  }
+}
+
+@media (max-width: 479px) {
+  .timer-readout {
+    width: min(76vw, 330px);
+    max-width: 76vw;
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.35rem, 10.2vw, 3.10rem);
+  }
+}
+
+@media (max-width: 359px) {
+  .timer-readout__time {
+    font-size: 2.25rem;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE 08 — TIMER OPTICAL CENTERING
+   ---------------------------------------------------------
+   Ajuste óptico final: desloca somente o conteúdo textual
+   do cronômetro levemente para a esquerda e reduz sua escala
+   no mobile, preservando criatura, centro vertical e controles.
+========================================================= */
+
+@media (max-width: 799px) {
+  .timer-readout {
+    margin-left: -2.2%;
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.35rem, 9.9vw, 3.35rem);
+  }
+}
+
+@media (max-width: 479px) {
+  .timer-readout {
+    margin-left: -2.6%;
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.25rem, 9.6vw, 2.95rem);
+  }
+}
+
+@media (max-width: 359px) {
+  .timer-readout {
+    margin-left: -3%;
+  }
+
+  .timer-readout__time {
+    font-size: 2.15rem;
+  }
+}
+
+/* =========================================================
+   RESPONSIVE 09 — GLOBAL TIMER OPTICAL CENTERING
+   ---------------------------------------------------------
+   Aplica o mesmo princípio aprovado no mobile também às
+   telas maiores: pequeno deslocamento óptico para a esquerda
+   e redução discreta da escala do tempo.
+========================================================= */
+
+/* Desktop grande */
+@media (min-width: 1400px) {
+  .timer-readout {
+    margin-left: -1.4%;
+  }
+
+  .timer-readout__time {
+    font-size: clamp(3.45rem, 4.85vw, 5.15rem);
+  }
+}
+
+/* Desktop compacto / tablet horizontal */
+@media (min-width: 800px) and (max-width: 1399px) {
+  .timer-readout {
+    margin-left: -1.8%;
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.50rem, 4.35vw, 4.30rem);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE 11 — MOBILE AS PRIMARY COMPOSITION
+   ---------------------------------------------------------
+   Mobile é tratado como uma composição própria.
+   A criatura permanece grande e protagonista abaixo de 800px,
+   sem tentar manter continuidade artificial com o tablet.
+========================================================= */
+
+@media (max-width: 799px) {
+  .creature-frame {
+    width: min(94vw, 520px);
+  }
+}
+
+/* Apenas uma proteção discreta para telas realmente estreitas. */
+@media (max-width: 359px) {
+  .creature-frame {
+    width: min(92vw, 420px);
+  }
+}
+
+/* =========================================================
+   RESPONSIVE 12 — MOBILE VERTICAL COMPOSITION
+   ---------------------------------------------------------
+   Aproveita melhor o espaço entre o título e a criatura.
+   Move criatura + cronômetro juntos para cima, preservando
+   tamanho, alinhamento interno e posição dos controles.
+========================================================= */
+
+@media (max-width: 799px) {
+  .center-stage {
+    --organism-center-y: 40%;
+  }
+}
+
+@media (max-width: 479px) {
+  .center-stage {
+    --organism-center-y: 39.5%;
+  }
+}
