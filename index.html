@@ -1,23 +1,148 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SYVRON — Behavior Prototype V10</title>
+  <meta name="theme-color" content="#020103">
+  <meta
+    name="description"
+    content="SYVRON — cronômetro interativo com organismo digital responsivo."
+  >
+  <title>SYVRON</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
   <link rel="stylesheet" href="./style.css">
 </head>
-<body>
-  <main class="stage">
-    <canvas id="organism" aria-label="SYVRON organism behavior prototype"></canvas>
 
-    <div class="behavior-console" aria-label="Behavior prototype controls">
-      <button data-state="idle">IDLE</button>
-      <button data-state="running">RUNNING</button>
-      <button data-state="lap">LAP</button>
-      <button data-state="pause">PAUSE</button>
-      <button data-state="resume">RESUME</button>
-      <button data-state="reset">RESET</button>
-    </div>
+<body>
+  <canvas id="ambient-particles" aria-hidden="true"></canvas>
+
+  <main class="desktop-app">
+    <header class="desktop-header">
+      <div class="brand" aria-label="SYVRON">
+        <span class="brand__name">SYVRON</span>
+        <span class="brand__meta">ORGANIC STOPWATCH</span>
+      </div>
+    </header>
+
+    <section class="desktop-workspace">
+      <aside class="panel panel--stats" aria-labelledby="stats-title">
+        <div class="panel__header">
+          <div>
+            <span class="panel__eyebrow">SESSION</span>
+            <h2 id="stats-title">Statistics</h2>
+          </div>
+
+          <span class="panel__signal" aria-hidden="true"></span>
+        </div>
+
+        <dl class="stats-grid">
+          <div class="stat">
+            <dt>Total Time</dt>
+            <dd id="stat-total">00:00.00</dd>
+          </div>
+
+          <div class="stat">
+            <dt>Best Lap</dt>
+            <dd id="stat-best">—</dd>
+          </div>
+
+          <div class="stat">
+            <dt>Laps</dt>
+            <dd id="stat-count">0</dd>
+          </div>
+        </dl>
+      </aside>
+
+      <section class="center-stage" aria-label="SYVRON stopwatch">
+        <div class="creature-frame" aria-hidden="true">
+          <canvas id="organism"></canvas>
+        </div>
+
+        <div class="timer-readout">
+          <span class="timer-readout__label">STOPWATCH</span>
+          <output
+            id="timer-display"
+            class="timer-readout__time"
+            aria-label="Stopwatch time"
+          >00:00.00</output>
+          <span id="timer-status" class="timer-readout__status">READY</span>
+        </div>
+
+        <div class="controls" aria-label="Stopwatch controls">
+          <button
+            id="reset-button"
+            class="control control--secondary"
+            type="button"
+            disabled
+          >
+            <span class="control__symbol" aria-hidden="true">↻</span>
+            <span>Reset</span>
+          </button>
+
+          <button
+            id="primary-button"
+            class="control control--primary"
+            type="button"
+          >
+            <span class="control__symbol" aria-hidden="true">▶</span>
+            <span id="primary-label">Start</span>
+          </button>
+
+          <button
+            id="lap-button"
+            class="control control--secondary"
+            type="button"
+            disabled
+          >
+            <span class="control__symbol" aria-hidden="true">⚑</span>
+            <span>Lap</span>
+          </button>
+
+          <button
+            id="pause-button"
+            class="control control--secondary"
+            type="button"
+            disabled
+          >
+            <span class="control__symbol control__symbol--pause" aria-hidden="true">Ⅱ</span>
+            <span>Pause</span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="panel panel--laps" aria-labelledby="laps-title">
+        <div class="panel__header">
+          <div>
+            <span class="panel__eyebrow">HISTORY</span>
+            <h2 id="laps-title">Laps</h2>
+          </div>
+
+          <span id="laps-count-badge" class="panel__count">0</span>
+        </div>
+
+        <div id="laps-empty" class="laps-empty">
+          <span class="laps-empty__icon" aria-hidden="true">◎</span>
+          <strong>No laps yet</strong>
+          <small>Start the stopwatch and record your first lap.</small>
+        </div>
+
+        <ol id="laps-list" class="laps-list" aria-live="polite"></ol>
+      </aside>
+    </section>
+
+    <div
+      id="live-status"
+      class="sr-only"
+      aria-live="polite"
+      aria-atomic="true"
+    ></div>
   </main>
 
   <script type="module" src="./js/main.js"></script>

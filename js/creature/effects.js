@@ -98,23 +98,132 @@ export function drawDust(ctx, cx, cy, size, base) {
   ctx.save();
   ctx.globalCompositeOperation = "screen";
 
-  for (let i = 0; i < 92; i += 1) {
+  // Matter released close to the organism.
+  for (let i = 0; i < 160; i += 1) {
     const u = rng();
-    const side = rng() > 0.40 ? 1 : -1;
+    const side = rng() > 0.42 ? 1 : -1;
     const lane = side > 0 ? 0.985 : 0.015;
-    const p = pointBetween(cx, cy, base, u, lane);
 
-    const angle = u * TAU - Math.PI / 2;
-    const push = size * lerp(0.006, 0.062, rng()) * side;
+    const p = pointBetween(
+      cx,
+      cy,
+      base,
+      u,
+      lane
+    );
 
-    const x = p.x + Math.cos(angle) * push;
-    const y = p.y + Math.sin(angle) * push;
-    const radius = lerp(0.35, 1.35, rng());
-    const alpha = lerp(0.07, 0.42, rng());
+    const angle =
+      u * TAU -
+      Math.PI / 2;
 
-    ctx.fillStyle = `rgba(143,67,255,${alpha})`;
+    const push =
+      size *
+      lerp(0.008, 0.12, rng()) *
+      side;
+
+    const x =
+      p.x +
+      Math.cos(angle) *
+        push;
+
+    const y =
+      p.y +
+      Math.sin(angle) *
+        push;
+
+    const radius =
+      lerp(0.30, 1.30, rng());
+
+    const alpha =
+      lerp(0.055, 0.32, rng());
+
+    ctx.fillStyle =
+      `rgba(143,67,255,${alpha})`;
+
     ctx.beginPath();
-    ctx.arc(x, y, radius, 0, TAU);
+    ctx.arc(
+      x,
+      y,
+      radius,
+      0,
+      TAU
+    );
+    ctx.fill();
+  }
+
+  // Ambient field surrounding the creature and its negative space.
+  for (let i = 0; i < 250; i += 1) {
+    const angle =
+      rng() * TAU;
+
+    const radial =
+      Math.sqrt(rng());
+
+    const distance =
+      size *
+      lerp(
+        0.10,
+        0.65,
+        radial
+      );
+
+    const x =
+      cx +
+      Math.cos(angle) *
+        distance *
+        lerp(
+          0.84,
+          1.18,
+          rng()
+        );
+
+    const y =
+      cy +
+      Math.sin(angle) *
+        distance *
+        lerp(
+          0.82,
+          1.14,
+          rng()
+        );
+
+    const radius =
+      rng() > 0.95
+        ? lerp(
+            1.0,
+            1.8,
+            rng()
+          )
+        : lerp(
+            0.22,
+            0.78,
+            rng()
+          );
+
+    const alpha =
+      rng() > 0.90
+        ? lerp(
+            0.18,
+            0.44,
+            rng()
+          )
+        : lerp(
+            0.035,
+            0.17,
+            rng()
+          );
+
+    ctx.fillStyle =
+      `rgba(137,63,255,${alpha})`;
+
+    ctx.beginPath();
+    ctx.arc(
+      x,
+      y,
+      radius,
+      0,
+      TAU
+    );
     ctx.fill();
   }
 

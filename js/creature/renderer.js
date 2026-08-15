@@ -15,17 +15,30 @@ export class CreatureRenderer {
     this.height = 1;
     this.dpr = 1;
     this.field = new FiberField();
+
+    this.layout = {
+      x: 0.5,
+      y: 0.5,
+      scale: 1,
+    };
+  }
+
+  setLayout(layout = {}) {
+    this.layout = {
+      ...this.layout,
+      ...layout,
+    };
   }
 
   resize() {
+    const rect = this.canvas.getBoundingClientRect();
+
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
-    this.width = window.innerWidth;
-    this.height = window.innerHeight;
+    this.width = Math.max(1, rect.width);
+    this.height = Math.max(1, rect.height);
 
     this.canvas.width = Math.round(this.width * this.dpr);
     this.canvas.height = Math.round(this.height * this.dpr);
-    this.canvas.style.width = `${this.width}px`;
-    this.canvas.style.height = `${this.height}px`;
 
     this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
   }
@@ -34,10 +47,11 @@ export class CreatureRenderer {
     const ctx = this.ctx;
     const size =
       Math.min(this.width, this.height) *
-      (this.width < 700 ? 0.94 : 0.86);
+      0.94 *
+      this.layout.scale;
 
-    const cx = this.width * 0.5;
-    const cy = this.height * 0.5;
+    const cx = this.width * this.layout.x;
+    const cy = this.height * this.layout.y;
     const base = size * 0.39;
 
     ctx.clearRect(0, 0, this.width, this.height);
