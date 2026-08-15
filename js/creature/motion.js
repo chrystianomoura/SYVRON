@@ -1,8 +1,8 @@
 const BASELINE = {
   flow: 1.55,
   speed: 2.35,
-  shimmer: 1.10,
-  membrane: 1.20,
+  shimmer: 1.1,
+  membrane: 1.2,
   turbulence: 1.25,
 };
 
@@ -23,9 +23,7 @@ export class CreatureMotion {
     const now = performance.now();
     const initialPhaseOffsetSeconds = 17.4;
 
-    this.startedAt =
-      now -
-      initialPhaseOffsetSeconds * 1000;
+    this.startedAt = now - initialPhaseOffsetSeconds * 1000;
 
     this.lastNow = now;
 
@@ -54,13 +52,7 @@ export class CreatureMotion {
   }
 
   setState(state) {
-    if (
-      ![
-        "idle",
-        "running",
-        "pause",
-      ].includes(state)
-    ) {
+    if (!["idle", "running", "pause"].includes(state)) {
       return;
     }
 
@@ -92,17 +84,9 @@ export class CreatureMotion {
       };
 
       // Softer than the previous behavior.
-      this.current.contraction =
-        Math.max(
-          this.current.contraction,
-          0.030
-        );
+      this.current.contraction = Math.max(this.current.contraction, 0.03);
 
-      this.current.settle =
-        Math.max(
-          this.current.settle,
-          0.028
-        );
+      this.current.settle = Math.max(this.current.settle, 0.028);
     }
   }
 
@@ -117,24 +101,28 @@ export class CreatureMotion {
     this.setState("running");
 
     // Gentle ignition cue.
-    this.current.ignition =
-      Math.max(
-        this.current.ignition,
-        0.040
-      );
+    this.current.ignition = Math.max(this.current.ignition, 0.04);
 
-    this.current.settle =
-      Math.max(
-        this.current.settle,
-        0.024
-      );
+    this.current.settle = Math.max(this.current.settle, 0.024);
   }
 
   reset(now = performance.now()) {
-    const wasPaused =
-      this.state === "pause";
+    const wasPaused = this.state === "pause";
 
     this.setState("idle");
+
+    /*
+      RESET must always begin from the same movement base.
+
+      RUNNING uses speed 3.72, while the living baseline
+      uses speed 2.35. Without this normalization,
+      RUNNING -> RESET carries the faster motion into
+      the reset pulse and makes the reaction much more
+      aggressive than PAUSE -> RESET.
+    */
+    this.current.speed = BASELINE.speed;
+
+    this.target.speed = BASELINE.speed;
 
     // Start a real timed RESET event.
     // Coming from PAUSE makes it slightly more visible,
@@ -144,171 +132,77 @@ export class CreatureMotion {
     this.current.resetProgress = 0;
     this.current.resetPulse = 0;
 
-    this.current.contraction =
-      Math.max(
-        this.current.contraction,
-        wasPaused
-          ? 0.060
-          : 0.040
-      );
+    this.current.contraction = Math.max(
+      this.current.contraction,
+      wasPaused ? 0.06 : 0.04,
+    );
 
-    this.current.settle =
-      Math.max(
-        this.current.settle,
-        wasPaused
-          ? 0.050
-          : 0.032
-      );
+    this.current.settle = Math.max(
+      this.current.settle,
+      wasPaused ? 0.05 : 0.032,
+    );
   }
 
   update(now) {
-    const dt = Math.min(
-      Math.max(
-        (now - this.lastNow) / 1000,
-        0
-      ),
-      0.05
-    );
+    const dt = Math.min(Math.max((now - this.lastNow) / 1000, 0), 0.05);
 
     this.lastNow = now;
 
     const response =
-      this.state === "running"
-        ? 1.00
-        : this.state === "pause"
-          ? 0.68
-          : 0.78;
+      this.state === "running" ? 1.0 : this.state === "pause" ? 0.68 : 0.78;
 
-    const smoothing =
-      1 -
-      Math.exp(
-        -dt *
-        response
-      );
+    const smoothing = 1 - Math.exp(-dt * response);
 
-    for (
-      const key
-      of [
-        "flow",
-        "speed",
-        "shimmer",
-        "membrane",
-        "turbulence",
-      ]
-    ) {
-      this.current[key] +=
-        (
-          this.target[key] -
-          this.current[key]
-        ) *
-        smoothing;
+    for (const key of ["flow", "speed", "shimmer", "membrane", "turbulence"]) {
+      this.current[key] += (this.target[key] - this.current[key]) * smoothing;
     }
 
-    if (
-      this.lapStartedAt !==
-      null
-    ) {
-      const progress =
-        (
-          now -
-          this.lapStartedAt
-        ) /
-        this.lapDuration;
+    if (this.lapStartedAt !== null) {
+      const progress = (now - this.lapStartedAt) / this.lapDuration;
 
       if (progress >= 1) {
         this.lapStartedAt = null;
         this.current.lapProgress = -1;
         this.current.wave = 0;
       } else {
-        this.current.lapProgress =
-          progress;
+        this.current.lapProgress = progress;
 
-        const fadeIn =
-          Math.min(
-            1,
-            progress / 0.08
-          );
+        const fadeIn = Math.min(1, progress / 0.08);
 
-        const fadeOut =
-          Math.min(
-            1,
-            (1 - progress) / 0.10
-          );
+        const fadeOut = Math.min(1, (1 - progress) / 0.1);
 
-        this.current.wave =
-          Math.min(
-            fadeIn,
-            fadeOut
-          );
+        this.current.wave = Math.min(fadeIn, fadeOut);
       }
     }
 
-    if (
-      this.resetStartedAt !==
-      null
-    ) {
-      const progress =
-        (
-          now -
-          this.resetStartedAt
-        ) /
-        this.resetDuration;
+    if (this.resetStartedAt !== null) {
+      const progress = (now - this.resetStartedAt) / this.resetDuration;
 
       if (progress >= 1) {
         this.resetStartedAt = null;
         this.current.resetProgress = -1;
         this.current.resetPulse = 0;
       } else {
-        this.current.resetProgress =
-          progress;
+        this.current.resetProgress = progress;
 
         // Smooth 0 -> 1 -> 0 pulse.
         // sin(pi * progress) guarantees a visible middle peak.
-        const pulse =
-          Math.sin(
-            Math.PI *
-            progress
-          );
+        const pulse = Math.sin(Math.PI * progress);
 
         // Ease the pulse slightly so the beginning/end feel organic.
-        this.current.resetPulse =
-          Math.pow(
-            Math.max(
-              0,
-              pulse
-            ),
-            1.15
-          );
+        this.current.resetPulse = Math.pow(Math.max(0, pulse), 1.15);
       }
     }
 
     // Softer decay for action manifestations.
-    this.current.ignition *=
-      Math.exp(
-        -dt *
-        1.85
-      );
+    this.current.ignition *= Math.exp(-dt * 1.85);
 
-    this.current.contraction *=
-      Math.exp(
-        -dt *
-        1.55
-      );
+    this.current.contraction *= Math.exp(-dt * 1.55);
 
-    this.current.settle *=
-      Math.exp(
-        -dt *
-        1.45
-      );
+    this.current.settle *= Math.exp(-dt * 1.45);
 
-    this.current.time =
-      (
-        now -
-        this.startedAt
-      ) /
-      1000;
+    this.current.time = (now - this.startedAt) / 1000;
 
-    this.current.state =
-      this.state;
+    this.current.state = this.state;
   }
 }
