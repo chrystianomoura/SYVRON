@@ -15,25 +15,25 @@
     <title>SYVRON</title>
 
     <!-- Favicons -->
-    <link rel="icon" type="image/x-icon" href="./favicon.ico" />
+    <link rel="icon" type="image/x-icon" href="./assets/icons/favicon.ico" />
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
-      href="./favicon-32x32.png"
+      href="./assets/icons/favicon-32x32.png"
     />
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
-      href="./favicon-16x16.png"
+      href="./assets/icons/favicon-16x16.png"
     />
     <link
       rel="apple-touch-icon"
       sizes="180x180"
-      href="./apple-touch-icon.png"
+      href="./assets/icons/apple-touch-icon.png"
     />
-    <link rel="manifest" href="./site.webmanifest" />
+    <link rel="manifest" href="./assets/icons/site.webmanifest" />
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -43,7 +43,7 @@
       rel="stylesheet"
     />
 
-    <link rel="stylesheet" href="./style.css" />
+    <link rel="stylesheet" href="./css/style.css" />
   </head>
 
   <body>
@@ -92,16 +92,17 @@
           </div>
 
           <div class="timer-readout">
-            <span class="timer-readout__label">STOPWATCH</span>
+            <span class="timer-readout__label"> STOPWATCH </span>
 
             <output
               id="timer-display"
               class="timer-readout__time"
               aria-label="Stopwatch time"
-              >00:00.00</output
             >
+              00:00.00
+            </output>
 
-            <span id="timer-status" class="timer-readout__status">READY</span>
+            <span id="timer-status" class="timer-readout__status"> READY </span>
           </div>
 
           <div class="controls" aria-label="Stopwatch controls">
@@ -111,7 +112,7 @@
               type="button"
               disabled
             >
-              <span class="control__symbol" aria-hidden="true">↻</span>
+              <span class="control__symbol" aria-hidden="true"> ↻ </span>
               <span>Reset</span>
             </button>
 
@@ -120,8 +121,8 @@
               class="control control--primary"
               type="button"
             >
-              <span class="control__symbol" aria-hidden="true">▶</span>
-              <span id="primary-label">Start</span>
+              <span class="control__symbol" aria-hidden="true"> ▶ </span>
+              <span id="primary-label"> Start </span>
             </button>
 
             <button
@@ -130,7 +131,7 @@
               type="button"
               disabled
             >
-              <span class="control__symbol" aria-hidden="true">⚑</span>
+              <span class="control__symbol" aria-hidden="true"> ⚑ </span>
               <span>Lap</span>
             </button>
 
@@ -143,8 +144,9 @@
               <span
                 class="control__symbol control__symbol--pause"
                 aria-hidden="true"
-                >Ⅱ</span
               >
+                Ⅱ
+              </span>
               <span>Pause</span>
             </button>
           </div>
@@ -153,17 +155,17 @@
         <aside class="panel panel--laps" aria-labelledby="laps-title">
           <div class="panel__header">
             <div>
-              <span class="panel__eyebrow">HISTORY</span>
+              <span class="panel__eyebrow"> HISTORY </span>
               <h2 id="laps-title">Laps</h2>
             </div>
 
-            <span id="laps-count-badge" class="panel__count">0</span>
+            <span id="laps-count-badge" class="panel__count"> 0 </span>
           </div>
 
           <div id="laps-empty" class="laps-empty">
-            <span class="laps-empty__icon" aria-hidden="true">◎</span>
+            <span class="laps-empty__icon" aria-hidden="true"> ◎ </span>
             <strong>No laps yet</strong>
-            <small>Start the stopwatch and record your first lap.</small>
+            <small> Start the stopwatch and record your first lap. </small>
           </div>
 
           <ol id="laps-list" class="laps-list" aria-live="polite"></ol>
