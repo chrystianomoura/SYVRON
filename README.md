@@ -222,7 +222,7 @@ Ele recebe o estado produzido pelo sistema de movimento e organiza a renderizaç
 - membranas;
 - fibras;
 - atmosfera;
-- highlights;
+- realces luminosos;
 - reações;
 - matéria ao redor da criatura.
 
@@ -458,7 +458,7 @@ A SYVRON não possui processo de build nem dependências de framework.
 Clone o repositório:
 
 ```bash
-git clone <URL-DO-REPOSITORIO>
+git clone https://github.com/chrystianomoura/SYVRON.git
 ```
 
 Entre na pasta:
@@ -477,7 +477,7 @@ No VS Code, uma opção é utilizar a extensão **Live Server** e abrir o `index
 
 ## Live Demo
 
-A demonstração pública será vinculada aqui após a publicação do projeto.
+**[Acessar a SYVRON](https://chrystianomoura.github.io/SYVRON/)**
 
 ---
 
