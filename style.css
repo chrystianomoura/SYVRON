@@ -2152,3 +2152,18 @@ button {
   }
 }
 
+/* =========================================================
+   MOBILE PERFORMANCE — BACKDROP FILTER
+   ---------------------------------------------------------
+   Dynamic backdrop blur is disabled on mobile to prevent
+   expensive recomposition over the animated canvas.
+   Desktop visual effects remain unchanged.
+========================================================= */
+
+@media (max-width: 799px) {
+  .panel,
+  .controls {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+}
