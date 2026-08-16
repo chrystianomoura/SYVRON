@@ -9,26 +9,77 @@ const BASELINE = {
 const RUNNING = {
   ...BASELINE,
 
-  // Same approved movement language, only faster.
-  speed: 5.5,
+  // Approved RUNNING speed.
+  speed: 8.0,
+};
+
+/* ==========================
+   LOCAL REACTION SETTINGS
+========================== */
+
+const START_REACTION = {
+  duration: 420,
+
+  /*
+    Strong START / RESUME burst.
+  */
+  speedBoost: 3.0,
+};
+
+const PAUSE_REACTION = {
+  duration: 460,
+
+  /*
+    PAUSE keeps its approved opposite-direction burst.
+  */
+  speedBoost: 1.5,
 };
 
 export class CreatureMotion {
   constructor() {
     this.state = "idle";
 
-    // Start the organism in a mature motion phase instead of phase zero.
-    // The approved baseline values are unchanged; this only prevents the
-    // first-load "cold start" from looking unusually slow.
     const now = performance.now();
     const initialPhaseOffsetSeconds = 17.4;
 
+    /*
+      Original visual clock.
+    */
     this.startedAt = now - initialPhaseOffsetSeconds * 1000;
 
     this.lastNow = now;
 
+    /*
+      Stable continuous movement clock.
+
+      State speed changes affect only future phase progression.
+    */
+    this.movementTime = initialPhaseOffsetSeconds * BASELINE.speed;
+
+    /* ==========================
+       START / RESUME
+    ========================== */
+
+    this.startReactionStartedAt = null;
+    this.startReactionDuration = START_REACTION.duration;
+
+    /* ==========================
+       PAUSE
+    ========================== */
+
+    this.pauseReactionStartedAt = null;
+    this.pauseReactionDuration = PAUSE_REACTION.duration;
+
+    /* ==========================
+       LAP
+    ========================== */
+
     this.lapStartedAt = null;
     this.lapDuration = 1450;
+
+    /* ==========================
+       RESET
+    ========================== */
 
     this.resetStartedAt = null;
     this.resetDuration = 820;
@@ -36,12 +87,24 @@ export class CreatureMotion {
     this.current = {
       ...BASELINE,
 
+      movementTime: this.movementTime,
+
+      /* START / RESUME */
+      startPulse: 0,
+
+      /* PAUSE */
+      pausePulse: 0,
+
+      /* LAP */
       lapProgress: -1,
       wave: 0,
+
+      /* Compatibility manifestations */
       contraction: 0,
       ignition: 0,
       settle: 0,
 
+      /* RESET */
       resetProgress: -1,
       resetPulse: 0,
     };
@@ -51,12 +114,22 @@ export class CreatureMotion {
     };
   }
 
-  setState(state) {
+  /* ==========================
+     STATE
+  ========================== */
+
+  setState(state, now = performance.now()) {
     if (!["idle", "running", "pause"].includes(state)) {
       return;
     }
 
+    const previousState = this.state;
+
     this.state = state;
+
+    /* ==========================
+       RUNNING
+    ========================== */
 
     if (state === "running") {
       this.target = {
@@ -64,8 +137,16 @@ export class CreatureMotion {
         ...RUNNING,
       };
 
+      if (previousState !== "running") {
+        this.beginStartReaction(now);
+      }
+
       return;
     }
+
+    /* ==========================
+       READY / IDLE
+    ========================== */
 
     if (state === "idle") {
       this.target = {
@@ -73,63 +154,129 @@ export class CreatureMotion {
         ...BASELINE,
       };
 
+      this.clearStartReaction();
+      this.clearPauseReaction();
+
       return;
     }
 
+    /* ==========================
+       PAUSE
+    ========================== */
+
     if (state === "pause") {
-      // PAUSE settles back to the living baseline.
       this.target = {
         ...this.target,
         ...BASELINE,
       };
 
-      // Softer than the previous behavior.
-      this.current.contraction = Math.max(this.current.contraction, 0.03);
-
-      this.current.settle = Math.max(this.current.settle, 0.028);
+      if (previousState !== "pause") {
+        this.beginPauseReaction(now);
+      }
     }
   }
 
+  /* ==========================
+     START / RESUME REACTION
+  ========================== */
+
+  beginStartReaction(now = performance.now()) {
+    /*
+      Reactions never stack.
+    */
+    this.clearPauseReaction();
+
+    this.startReactionStartedAt = now;
+
+    this.current.startPulse = 0;
+  }
+
+  clearStartReaction() {
+    this.startReactionStartedAt = null;
+
+    this.current.startPulse = 0;
+  }
+
+  /* ==========================
+     PAUSE REACTION
+  ========================== */
+
+  beginPauseReaction(now = performance.now()) {
+    this.clearStartReaction();
+
+    this.pauseReactionStartedAt = now;
+
+    this.current.pausePulse = 0;
+  }
+
+  clearPauseReaction() {
+    this.pauseReactionStartedAt = null;
+
+    this.current.pausePulse = 0;
+  }
+
+  /* ==========================
+     LAP
+  ========================== */
+
   lap(now = performance.now()) {
-    // LAP remains untouched.
+    // Approved LAP remains untouched.
     this.lapStartedAt = now;
+
     this.current.lapProgress = 0;
+
     this.current.wave = 1;
   }
 
-  resume() {
-    this.setState("running");
+  /* ==========================
+     RESUME
+  ========================== */
 
-    // Gentle ignition cue.
-    this.current.ignition = Math.max(this.current.ignition, 0.04);
+  resume(now = performance.now()) {
+    /*
+      Moving from PAUSE -> RUNNING automatically:
 
-    this.current.settle = Math.max(this.current.settle, 0.024);
+      - restores the normal direction;
+      - starts the START / RESUME burst.
+    */
+    this.setState("running", now);
   }
+
+  /* ==========================
+     RESET
+  ========================== */
 
   reset(now = performance.now()) {
     const wasPaused = this.state === "pause";
 
-    this.setState("idle");
+    /*
+      Returning to IDLE restores
+      the organism's normal movement direction.
+    */
+    this.setState("idle", now);
 
     /*
-      RESET must always begin from the same movement base.
-
-      RUNNING uses a higher speed, while the living baseline
-      uses speed 2.35. Without this normalization,
-      RUNNING -> RESET carries the faster motion into
-      the reset pulse and makes the reaction much more
-      aggressive than PAUSE -> RESET.
+      RESET immediately returns movement speed
+      to baseline.
     */
     this.current.speed = BASELINE.speed;
 
     this.target.speed = BASELINE.speed;
 
-    // Start a real timed RESET event.
-    // Coming from PAUSE makes it slightly more visible,
-    // but the animation remains soft and organic.
+    /*
+      START / PAUSE reactions never leak
+      into RESET.
+    */
+    this.clearStartReaction();
+    this.clearPauseReaction();
+
+    /*
+      RESET keeps its own geometric manifestation.
+    */
     this.resetStartedAt = now;
 
     this.current.resetProgress = 0;
+
     this.current.resetPulse = 0;
 
     this.current.contraction = Math.max(
@@ -143,10 +290,18 @@ export class CreatureMotion {
     );
   }
 
+  /* ==========================
+     UPDATE
+  ========================== */
+
   update(now) {
     const dt = Math.min(Math.max((now - this.lastNow) / 1000, 0), 0.05);
 
     this.lastNow = now;
+
+    /* ==========================
+       STATE TRANSITION
+    ========================== */
 
     const response =
       this.state === "running" ? 1.0 : this.state === "pause" ? 0.68 : 0.78;
@@ -157,12 +312,52 @@ export class CreatureMotion {
       this.current[key] += (this.target[key] - this.current[key]) * smoothing;
     }
 
+    /* ==========================
+       START / RESUME PULSE
+    ========================== */
+
+    if (this.startReactionStartedAt !== null) {
+      const progress =
+        (now - this.startReactionStartedAt) / this.startReactionDuration;
+
+      if (progress >= 1) {
+        this.clearStartReaction();
+      } else {
+        const pulse = Math.sin(Math.PI * progress);
+
+        this.current.startPulse = Math.pow(Math.max(0, pulse), 0.82);
+      }
+    }
+
+    /* ==========================
+       PAUSE PULSE
+    ========================== */
+
+    if (this.pauseReactionStartedAt !== null) {
+      const progress =
+        (now - this.pauseReactionStartedAt) / this.pauseReactionDuration;
+
+      if (progress >= 1) {
+        this.clearPauseReaction();
+      } else {
+        const pulse = Math.sin(Math.PI * progress);
+
+        this.current.pausePulse = Math.pow(Math.max(0, pulse), 0.9);
+      }
+    }
+
+    /* ==========================
+       LAP
+    ========================== */
+
     if (this.lapStartedAt !== null) {
       const progress = (now - this.lapStartedAt) / this.lapDuration;
 
       if (progress >= 1) {
         this.lapStartedAt = null;
+
         this.current.lapProgress = -1;
+
         this.current.wave = 0;
       } else {
         this.current.lapProgress = progress;
@@ -175,33 +370,78 @@ export class CreatureMotion {
       }
     }
 
+    /* ==========================
+       RESET
+    ========================== */
+
     if (this.resetStartedAt !== null) {
       const progress = (now - this.resetStartedAt) / this.resetDuration;
 
       if (progress >= 1) {
         this.resetStartedAt = null;
+
         this.current.resetProgress = -1;
+
         this.current.resetPulse = 0;
       } else {
         this.current.resetProgress = progress;
 
-        // Smooth 0 -> 1 -> 0 pulse.
-        // sin(pi * progress) guarantees a visible middle peak.
         const pulse = Math.sin(Math.PI * progress);
 
-        // Ease the pulse slightly so the beginning/end feel organic.
         this.current.resetPulse = Math.pow(Math.max(0, pulse), 1.15);
       }
     }
 
-    // Softer decay for action manifestations.
+    /* ==========================
+       EXISTING DECAY
+    ========================== */
+
     this.current.ignition *= Math.exp(-dt * 1.85);
 
     this.current.contraction *= Math.exp(-dt * 1.55);
 
     this.current.settle *= Math.exp(-dt * 1.45);
 
+    /* ==========================
+       ORIGINAL VISUAL TIME
+    ========================== */
+
     this.current.time = (now - this.startedAt) / 1000;
+
+    /* ==========================
+       REACTION SPEED
+       ---------------------------------------------------------
+       START / RESUME:
+       strong forward burst.
+
+       PAUSE:
+       opposite-direction burst.
+    ========================== */
+
+    const reactionSpeed =
+      1 +
+      this.current.startPulse * START_REACTION.speedBoost +
+      this.current.pausePulse * PAUSE_REACTION.speedBoost;
+
+    /* ==========================
+       MOVEMENT DIRECTION
+       ---------------------------------------------------------
+       READY / RUNNING:
+       normal anti-clockwise visual movement.
+
+       PAUSE:
+       reverses the procedural movement.
+    ========================== */
+
+    const direction = this.state === "pause" ? -1 : 1;
+
+    /* ==========================
+       STABLE CONTINUOUS MOVEMENT
+    ========================== */
+
+    this.movementTime += dt * this.current.speed * reactionSpeed * direction;
+
+    this.current.movementTime = this.movementTime;
 
     this.current.state = this.state;
   }

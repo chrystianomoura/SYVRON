@@ -24,20 +24,31 @@ export class FiberField {
 
   createFibers(count) {
     const rng = mulberry32(761923);
+
     const fibers = [];
 
     for (let i = 0; i < count; i += 1) {
       fibers.push({
         lane: i / (count - 1),
+
         phase1: rng() * TAU,
+
         phase2: rng() * TAU,
+
         phase3: rng() * TAU,
+
         migration: lerp(0.012, 0.052, rng()),
+
         tangent: lerp(0.004, 0.027, rng()),
+
         alpha: lerp(0.08, 0.48, Math.pow(rng(), 0.62)),
-        width: lerp(0.50, 1.42, rng()),
+
+        width: lerp(0.5, 1.42, rng()),
+
         family: Math.floor(rng() * 7),
+
         brightness: rng(),
+
         speed: lerp(0.72, 1.24, rng()),
 
         // Reused point objects avoid ~27k allocations per frame
@@ -60,20 +71,28 @@ export class FiberField {
 
     for (let i = 0; i < samples; i += 1) {
       const u = i / samples;
+
       const angle = u * TAU - Math.PI / 2;
 
       cache[i] = {
         u,
+
         uTau: u * TAU,
 
         cosAngle: Math.cos(angle),
+
         sinAngle: Math.sin(angle),
 
         inner: innerRadius(u),
+
         outer: outerRadius(u),
+
         pinch: pinchAmount(u),
+
         twist: twistAmount(u),
-        seam: seamContinuityWeight(u, 0.060),
+
+        seam: seamContinuityWeight(u, 0.06),
+
         lowerEnvelope: angularWindow(u, 0.605, 0.155),
       };
     }
@@ -92,8 +111,13 @@ export class FiberField {
 
     if (!points) {
       points = Array.from(
-        { length: samples },
-        () => ({ x: 0, y: 0 })
+        {
+          length: samples,
+        },
+        () => ({
+          x: 0,
+          y: 0,
+        }),
       );
 
       fiber._paths.set(samples, points);
@@ -103,25 +127,44 @@ export class FiberField {
   }
 
   laneAt(fiber, u, motion = {}) {
-    // Public/reference path kept mathematically equivalent for any
-    // non-sampled caller. pathFor() uses laneAtCached() below.
     const time = motion.time ?? 0;
+
+    /*
+      Continuous procedural movement clock.
+
+      movementTime already contains state speed
+      and temporary START / PAUSE acceleration.
+    */
+    const movementTime =
+      motion.movementTime ?? time * (motion.speed ?? motion.flow ?? 0);
+
     const flow = motion.flow ?? 0;
-    const speed = motion.speed ?? flow;
+
     const turbulence = motion.turbulence ?? 0;
+
     const wave = motion.wave ?? 0;
+
     const lapProgress = motion.lapProgress ?? -1;
-    const ignition = motion.ignition ?? 0;
+
     const contraction = motion.contraction ?? 0;
+
     const resetPulse = motion.resetPulse ?? 0;
 
+    const resetTime = motion.resetTime ?? 0;
+
     const twist = twistAmount(u);
+
     let lane = fiber.lane;
+
+    /* ==========================
+       NATURAL MOVEMENT
+    ========================== */
 
     lane += twist * (0.5 - lane) * 0.88;
 
-    const phaseDrift = time * 0.205 * speed * fiber.speed;
-    const seam = seamContinuityWeight(u, 0.060);
+    const phaseDrift = movementTime * 0.205 * fiber.speed;
+
+    const seam = seamContinuityWeight(u, 0.06);
 
     lane +=
       Math.sin(u * TAU * 2.15 + fiber.phase1 + phaseDrift) *
@@ -135,29 +178,42 @@ export class FiberField {
       (0.48 + turbulence * 0.58);
 
     lane +=
-      Math.sin(
-        u * TAU * 3.0 +
-        fiber.family * 0.93 +
-        phaseDrift * 0.52
-      ) *
-      (0.020 + Math.abs(twist) * 0.060) *
-      (1 + turbulence * 1.10);
+      Math.sin(u * TAU * 3.0 + fiber.family * 0.93 + phaseDrift * 0.52) *
+      (0.02 + Math.abs(twist) * 0.06) *
+      (1 + turbulence * 1.1);
 
     lane +=
       Math.sin(
-        time * 0.20 * fiber.speed * speed +
-        fiber.family * 0.95 +
-        u * TAU
+        movementTime * 0.2 * fiber.speed + fiber.family * 0.95 + u * TAU,
       ) *
       0.036 *
       flow;
 
+    /*
+      =========================================================
+      START / PAUSE
+      =========================================================
+
+      Intentionally no geometry reaction here.
+
+      Their manifestation exists exclusively as temporary
+      acceleration of movementTime in motion.js.
+    */
+
+    /* ==========================
+       LAP
+    ========================== */
+
     if (lapProgress >= 0) {
       const waveCenter = lapProgress;
+
       const delta = Math.abs(u - waveCenter);
+
       const circularDistance = Math.min(delta, 1 - delta);
-      const envelope =
-        Math.exp(-(circularDistance * circularDistance) / 0.0082);
+
+      const envelope = Math.exp(
+        -(circularDistance * circularDistance) / 0.0082,
+      );
 
       lane +=
         envelope *
@@ -166,54 +222,43 @@ export class FiberField {
         wave;
     }
 
-    lane +=
-      Math.sin(u * TAU * 6 + fiber.phase3 + time * 2.8) *
-      0.030 *
-      ignition;
+    /* ==========================
+       RESET
+       ---------------------------------------------------------
+       RESET remains the action responsible
+       for geometric reorganization.
+    ========================== */
 
-    // Timed RESET event:
-    // coherent inward reorganization + soft secondary ripple.
     lane +=
-      Math.sin(
-        u * TAU * 2.0 +
-        fiber.phase2 * 0.30 +
-        time * 0.55
-      ) *
+      Math.sin(u * TAU * 2.0 + fiber.phase2 * 0.3 + resetTime * 0.55) *
       0.145 *
       resetPulse *
-      seamContinuityWeight(u, 0.060);
+      seam;
 
     lane +=
-      Math.sin(
-        u * TAU * 4.0 -
-        fiber.phase1 * 0.20 -
-        time * 0.42
-      ) *
+      Math.sin(u * TAU * 4.0 - fiber.phase1 * 0.2 - resetTime * 0.42) *
       0.055 *
       resetPulse *
-      seamContinuityWeight(u, 0.060);
+      seam;
 
-    // Gentle inward pull at the middle of the reset.
-    lane +=
-      (0.5 - lane) *
-      0.14 *
-      resetPulse;
+    lane += (0.5 - lane) * 0.14 * resetPulse;
 
     const lowerEnvelope = angularWindow(u, 0.605, 0.155);
 
     if (lowerEnvelope > 0) {
       const spread = 1 + 0.17 * lowerEnvelope;
+
       lane = 0.5 + (lane - 0.5) * spread;
 
-      const innerWeight =
-        Math.pow(1 - clamp(lane, 0, 1), 1.65);
+      const innerWeight = Math.pow(1 - clamp(lane, 0, 1), 1.65);
 
-      lane -=
-        0.045 *
-        lowerEnvelope *
-        innerWeight;
+      lane -= 0.045 * lowerEnvelope * innerWeight;
     }
 
+    /*
+      contraction is now effectively reserved for RESET,
+      since PAUSE no longer injects contraction.
+    */
     lane += (fiber.lane - lane) * 0.62 * contraction;
 
     return clamp(lane, 0.012, 0.988);
@@ -222,145 +267,85 @@ export class FiberField {
   laneAtCached(fiber, sample, motion, shared) {
     let lane = fiber.lane;
 
-    lane +=
-      sample.twist *
-      (0.5 - lane) *
-      0.88;
+    /* ==========================
+       NATURAL MOVEMENT
+    ========================== */
 
-    const phaseDrift =
-      shared.phaseDriftBase *
-      fiber.speed;
+    lane += sample.twist * (0.5 - lane) * 0.88;
+
+    const phaseDrift = shared.phaseDriftBase * fiber.speed;
 
     lane +=
-      Math.sin(
-        sample.uTau * 2.15 +
-        fiber.phase1 +
-        phaseDrift
-      ) *
+      Math.sin(sample.uTau * 2.15 + fiber.phase1 + phaseDrift) *
       fiber.migration *
       shared.migrationPrimary *
       sample.seam;
 
     lane +=
-      Math.sin(
-        sample.uTau * 5.0 +
-        fiber.phase2 -
-        phaseDrift * 0.82
-      ) *
+      Math.sin(sample.uTau * 5.0 + fiber.phase2 - phaseDrift * 0.82) *
       fiber.migration *
       shared.migrationSecondary;
 
     lane +=
-      Math.sin(
-        sample.uTau * 3.0 +
-        fiber.family * 0.93 +
-        phaseDrift * 0.52
-      ) *
-      (0.020 + Math.abs(sample.twist) * 0.060) *
+      Math.sin(sample.uTau * 3.0 + fiber.family * 0.93 + phaseDrift * 0.52) *
+      (0.02 + Math.abs(sample.twist) * 0.06) *
       shared.familyTurbulence;
 
     lane +=
       Math.sin(
-        shared.swimTime *
-        fiber.speed +
-        fiber.family * 0.95 +
-        sample.uTau
-      ) *
-      shared.swimAmplitude;
+        shared.swimTime * fiber.speed + fiber.family * 0.95 + sample.uTau,
+      ) * shared.swimAmplitude;
+
+    /* ==========================
+       LAP
+    ========================== */
 
     if (shared.lapActive) {
-      const delta =
-        Math.abs(
-          sample.u -
-          shared.lapProgress
-        );
+      const delta = Math.abs(sample.u - shared.lapProgress);
 
-      const circularDistance =
-        Math.min(
-          delta,
-          1 - delta
-        );
+      const circularDistance = Math.min(delta, 1 - delta);
 
-      const envelope =
-        Math.exp(
-          -(
-            circularDistance *
-            circularDistance
-          ) /
-            0.0082
-        );
+      const envelope = Math.exp(
+        -(circularDistance * circularDistance) / 0.0082,
+      );
 
       lane +=
-        envelope *
-        shared.lapFiberSine(fiber.phase1) *
-        shared.lapAmplitude;
+        envelope * shared.lapFiberSine(fiber.phase1) * shared.lapAmplitude;
     }
 
-    lane +=
-      Math.sin(
-        sample.uTau * 6 +
-        fiber.phase3 +
-        shared.ignitionTime
-      ) *
-      shared.ignitionAmplitude;
+    /* ==========================
+       RESET
+    ========================== */
 
-    // Timed RESET event:
-    // guaranteed visible peak halfway through resetDuration.
     lane +=
       Math.sin(
-        sample.uTau * 2.0 +
-        fiber.phase2 * 0.30 +
-        shared.resetTimePrimary
+        sample.uTau * 2.0 + fiber.phase2 * 0.3 + shared.resetTimePrimary,
       ) *
       shared.resetAmplitudePrimary *
       sample.seam;
 
     lane +=
       Math.sin(
-        sample.uTau * 4.0 -
-        fiber.phase1 * 0.20 -
-        shared.resetTimeSecondary
+        sample.uTau * 4.0 - fiber.phase1 * 0.2 - shared.resetTimeSecondary,
       ) *
       shared.resetAmplitudeSecondary *
       sample.seam;
 
-    lane +=
-      (0.5 - lane) *
-      shared.resetPull;
+    lane += (0.5 - lane) * shared.resetPull;
 
     if (sample.lowerEnvelope > 0) {
-      const spread =
-        1 +
-        0.17 *
-          sample.lowerEnvelope;
+      const spread = 1 + 0.17 * sample.lowerEnvelope;
 
-      lane =
-        0.5 +
-        (lane - 0.5) *
-          spread;
+      lane = 0.5 + (lane - 0.5) * spread;
 
-      const clampedLane =
-        lane < 0
-          ? 0
-          : lane > 1
-            ? 1
-            : lane;
+      const clampedLane = lane < 0 ? 0 : lane > 1 ? 1 : lane;
 
-      const innerWeight =
-        Math.pow(
-          1 - clampedLane,
-          1.65
-        );
+      const innerWeight = Math.pow(1 - clampedLane, 1.65);
 
-      lane -=
-        0.045 *
-        sample.lowerEnvelope *
-        innerWeight;
+      lane -= 0.045 * sample.lowerEnvelope * innerWeight;
     }
 
-    lane +=
-      (fiber.lane - lane) *
-      shared.contractionFactor;
+    lane += (fiber.lane - lane) * shared.contractionFactor;
 
     if (lane < 0.012) {
       return 0.012;
@@ -374,210 +359,130 @@ export class FiberField {
   }
 
   pathFor(cx, cy, base, fiber, motion = {}, samples = DEFAULT_SAMPLES) {
-    const geometry =
-      this.getGeometryCache(samples);
+    const geometry = this.getGeometryCache(samples);
 
-    const points =
-      this.getReusablePath(
-        fiber,
-        samples
-      );
+    const points = this.getReusablePath(fiber, samples);
 
     const time = motion.time ?? 0;
+
+    const movementTime =
+      motion.movementTime ?? time * (motion.speed ?? motion.flow ?? 0);
+
     const flow = motion.flow ?? 0;
-    const speed = motion.speed ?? flow;
+
     const turbulence = motion.turbulence ?? 0;
+
     const wave = motion.wave ?? 0;
+
     const lapProgress = motion.lapProgress ?? -1;
-    const ignition = motion.ignition ?? 0;
+
     const contraction = motion.contraction ?? 0;
+
     const resetPulse = motion.resetPulse ?? 0;
 
+    const resetTime = motion.resetTime ?? 0;
+
     const shared = {
-      phaseDriftBase:
-        time *
-        0.205 *
-        speed,
+      /* ==========================
+         CONTINUOUS MOVEMENT
+      ========================== */
 
-      migrationPrimary:
-        1 +
-        turbulence *
-          1.25,
+      phaseDriftBase: movementTime * 0.205,
 
-      migrationSecondary:
-        0.48 +
-        turbulence *
-          0.58,
+      migrationPrimary: 1 + turbulence * 1.25,
 
-      familyTurbulence:
-        1 +
-        turbulence *
-          1.10,
+      migrationSecondary: 0.48 + turbulence * 0.58,
 
-      swimTime:
-        time *
-        0.20 *
-        speed,
+      familyTurbulence: 1 + turbulence * 1.1,
 
-      swimAmplitude:
-        0.036 *
-        flow,
+      swimTime: movementTime * 0.2,
 
-      lapActive:
-        lapProgress >= 0,
+      swimAmplitude: 0.036 * flow,
+
+      /* ==========================
+         LAP
+      ========================== */
+
+      lapActive: lapProgress >= 0,
 
       lapProgress,
 
-      lapAmplitude:
-        0.082 *
-        wave,
+      lapAmplitude: 0.082 * wave,
 
-      lapPhase:
-        lapProgress *
-        TAU *
-        2,
+      lapPhase: lapProgress * TAU * 2,
 
       lapFiberSine(phase1) {
-        return Math.sin(
-          phase1 +
-          this.lapPhase
-        );
+        return Math.sin(phase1 + this.lapPhase);
       },
 
-      ignitionTime:
-        time * 2.8,
+      contractionFactor: 0.62 * contraction,
 
-      ignitionAmplitude:
-        0.030 *
-        ignition,
+      /* ==========================
+         RESET
+      ========================== */
 
-      contractionFactor:
-        0.62 *
-        contraction,
+      resetTimePrimary: resetTime * 0.55,
 
-      resetTimePrimary:
-        time * 0.55,
+      resetTimeSecondary: resetTime * 0.42,
 
-      resetTimeSecondary:
-        time * 0.42,
+      resetAmplitudePrimary: 0.145 * resetPulse,
 
-      resetAmplitudePrimary:
-        0.145 *
-        resetPulse,
+      resetAmplitudeSecondary: 0.055 * resetPulse,
 
-      resetAmplitudeSecondary:
-        0.055 *
-        resetPulse,
-
-      resetPull:
-        0.14 *
-        resetPulse,
+      resetPull: 0.14 * resetPulse,
     };
 
-    const tangentPhase =
-      time *
-      0.165 *
-      speed *
-      fiber.speed;
+    /* ==========================
+       NATURAL TANGENTIAL MOTION
+       ---------------------------------------------------------
+       No START / PAUSE multiplier here.
 
-    const tangentPrimary =
-      fiber.tangent *
-      (1 + turbulence * 1.15);
+       Their reaction already happened when
+       movementTime advanced faster.
+    ========================== */
 
-    const tangentSecondary =
-      fiber.tangent *
-      0.32 *
-      (1 + turbulence * 0.90);
+    const tangentPhase = movementTime * 0.165 * fiber.speed;
 
-    const tangentPhaseSecondary =
-      tangentPhase *
-      0.76;
+    const tangentPrimary = fiber.tangent * (1 + turbulence * 1.15);
+
+    const tangentSecondary = fiber.tangent * 0.32 * (1 + turbulence * 0.9);
+
+    const tangentPhaseSecondary = tangentPhase * 0.76;
 
     for (let i = 0; i < samples; i += 1) {
       const sample = geometry[i];
 
-      const lane =
-        this.laneAtCached(
-          fiber,
-          sample,
-          motion,
-          shared
-        );
+      const lane = this.laneAtCached(fiber, sample, motion, shared);
 
       const tangent =
-        (
-          Math.sin(
-            sample.uTau * 2.7 +
-            fiber.phase2 +
-            tangentPhase
-          ) *
-            tangentPrimary +
-          Math.sin(
-            sample.uTau * 7.2 +
-            fiber.phase3 -
-            tangentPhaseSecondary
-          ) *
-            tangentSecondary
-        ) *
+        (Math.sin(sample.uTau * 2.7 + fiber.phase2 + tangentPhase) *
+          tangentPrimary +
+          Math.sin(sample.uTau * 7.2 + fiber.phase3 - tangentPhaseSecondary) *
+            tangentSecondary) *
         sample.seam;
 
-      // Inline the exact pointBetween() math using cached anatomy/trig.
-      // This removes innerRadius(), outerRadius(), pinchAmount(),
-      // seam math and angle sin/cos from every fiber sample.
-      const pinched =
-        0.5 +
-        (lane - 0.5) *
-          (1 - sample.pinch);
+      const pinched = 0.5 + (lane - 0.5) * (1 - sample.pinch);
 
-      const clampedPinched =
-        pinched < 0
-          ? 0
-          : pinched > 1
-            ? 1
-            : pinched;
+      const clampedPinched = pinched < 0 ? 0 : pinched > 1 ? 1 : pinched;
 
-      const smooth =
-        clampedPinched *
-        clampedPinched *
-        (
-          3 -
-          2 *
-            clampedPinched
-        );
+      const smooth = clampedPinched * clampedPinched * (3 - 2 * clampedPinched);
 
       const radius =
-        (
-          sample.inner +
-          (
-            sample.outer -
-            sample.inner
-          ) *
-            smooth
-        ) *
-        base;
+        (sample.inner + (sample.outer - sample.inner) * smooth) * base;
 
-      const tangentDistance =
-        tangent *
-        base;
+      const tangentDistance = tangent * base;
 
       const point = points[i];
 
       point.x =
         cx +
-        sample.cosAngle *
-          radius *
-          1.012 -
-        sample.sinAngle *
-          tangentDistance;
+        sample.cosAngle * radius * 1.012 -
+        sample.sinAngle * tangentDistance;
 
       point.y =
         cy +
-        sample.sinAngle *
-          radius *
-          0.988 +
-        sample.cosAngle *
-          tangentDistance *
-          0.86;
+        sample.sinAngle * radius * 0.988 +
+        sample.cosAngle * tangentDistance * 0.86;
     }
 
     return points;
@@ -586,6 +491,7 @@ export class FiberField {
 
 function angularWindow(u, center, halfWidth) {
   const raw = Math.abs(u - center);
+
   const distance = Math.min(raw, 1 - raw);
 
   if (distance >= halfWidth) {
@@ -598,10 +504,13 @@ function angularWindow(u, center, halfWidth) {
 }
 
 function mulberry32(seed) {
-  return function() {
-    let t = seed += 0x6D2B79F5;
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+
     t = Math.imul(t ^ (t >>> 15), t | 1);
+
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
