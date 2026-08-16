@@ -10,7 +10,7 @@ const RUNNING = {
   ...BASELINE,
 
   // Approved RUNNING speed.
-  speed: 8.0,
+  speed: 4.0,
 };
 
 /* ==========================

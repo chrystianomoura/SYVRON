@@ -2100,3 +2100,55 @@ button {
     --organism-center-y: 39.5%;
   }
 }
+
+/* =========================================================
+   TOUCH — PREVENT STICKY CONTROL HOVER
+   ---------------------------------------------------------
+   Em dispositivos touch, remove o hover persistente que pode
+   permanecer visualmente ativo após tocar em um controle.
+========================================================= */
+
+@media (hover: none), (pointer: coarse) {
+  .control:hover:not(:disabled) {
+    transform: none;
+    color: rgba(215, 197, 228, 0.78);
+    border-color: rgba(172, 107, 236, 0.055);
+    background: rgba(85, 39, 121, 0.025);
+    box-shadow: none;
+    text-shadow: none;
+  }
+
+  .control:hover:not(:disabled) .control__symbol,
+  .control:hover:not(:disabled) span:last-child {
+    color: #d7b2ff;
+    text-shadow: none;
+  }
+
+  .control:active:not(:disabled) {
+    transform: scale(0.965);
+
+    color: #f3e8ff;
+
+    border-color: rgba(190, 125, 255, 0.55);
+
+    background:
+      radial-gradient(
+        circle at 50% 50%,
+        rgba(151, 77, 220, 0.22),
+        rgba(85, 39, 121, 0.08) 68%
+      );
+
+    box-shadow:
+      inset 0 0 22px rgba(167, 94, 235, 0.12),
+      0 0 18px rgba(149, 77, 211, 0.14);
+  }
+
+  .control:active:not(:disabled) .control__symbol,
+  .control:active:not(:disabled) span:last-child {
+    color: #f1dcff;
+
+    text-shadow:
+      0 0 10px rgba(192, 133, 255, 0.45);
+  }
+}
+
