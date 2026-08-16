@@ -26,7 +26,13 @@ A criatura não é um GIF, vídeo ou animação pré-renderizada. Sua anatomia, 
 
 ### Mobile
 
-![SYVRON no mobile](./assets/screenshots/syvron-mobile.png)
+<p align="center">
+  <img
+    src="./assets/screenshots/syvron-mobile.png"
+    alt="SYVRON no mobile"
+    width="320"
+  >
+</p>
 
 ---
 
