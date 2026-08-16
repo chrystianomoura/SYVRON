@@ -1,3 +1,25 @@
+# ==========================================================
+# macOS
+# ----------------------------------------------------------
+# .DS_Store é criado automaticamente pelo Finder para guardar
+# preferências visuais de pastas.
+#
+# __MACOSX/ pode aparecer ao compactar arquivos/pastas no macOS.
+# Nenhum dos dois pertence ao código-fonte do projeto.
+# ==========================================================
+
 .DS_Store
 __MACOSX/
+
+
+# ==========================================================
+# Node.js
+# ----------------------------------------------------------
+# node_modules/ contém dependências instaladas localmente.
+#
+# Essa pasta pode ser recriada a partir do package.json /
+# package-lock.json quando o projeto utiliza npm, portanto
+# normalmente não deve ser versionada no Git.
+# ==========================================================
+
 node_modules/

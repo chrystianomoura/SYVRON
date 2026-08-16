@@ -1,3 +1,29 @@
+/* =========================================================
+   SYVRON — GUIA DA FOLHA DE ESTILOS
+   ---------------------------------------------------------
+   Este arquivo preserva a cascata visual aprovada do projeto.
+
+   IMPORTANTE PARA MANUTENÇÃO:
+   - a ordem das regras faz parte do comportamento final;
+   - desktop, tablet e mobile possuem camadas de refinamento;
+   - algumas declarações aparentemente repetidas são intencionais;
+   - não reorganize blocos apenas para "limpar" o arquivo;
+   - alterações responsivas devem ser testadas em dispositivo real.
+
+   MAPA DE LEITURA:
+   1. Variáveis visuais, estrutura global e layout-base
+   2. Painéis, cronômetro, controles e histórico de voltas
+   3. Refinamentos visuais de desktop
+   4. Responsividade de tablet e mobile
+   5. Geometria responsiva da criatura e do cronômetro
+   6. Estados dos controles e comportamento toque
+   7. Ajustes finais de desempenho mobile
+
+   Nesta versão, somente comentários foram adicionados ou
+   reescritos. Nenhum seletor, valor, ponto de quebra ou declaração
+   funcional foi alterado.
+========================================================= */
+
 :root {
   color-scheme: dark;
 
@@ -247,16 +273,6 @@ button {
   height: 100%;
 }
 
-.creature-frame {
-  position: absolute;
-  left: 50%;
-  top: 43%;
-  width: min(47vw, 760px);
-  height: min(47vw, 760px);
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-}
-
 #organism {
   display: block;
   width: 100%;
@@ -267,42 +283,62 @@ button {
   position: absolute;
   z-index: 5;
   left: 50%;
-  top: 41%;
   min-width: max-content;
   transform: translate(-50%, -50%);
   text-align: center;
   pointer-events: none;
 }
 
+/*
+  O rótulo, o valor do tempo e o status compartilham a mesma
+  hierarquia visual. Os tamanhos específicos de cada área visível
+  são definidos posteriormente na seção responsiva; por isso,
+  este bloco contém apenas tipografia e aparência comuns.
+*/
 .timer-readout__label {
   display: block;
-  margin-bottom: 12px;
-  color: #a16edc;
-  font-size: 0.60rem;
-  font-weight: 600;
-  letter-spacing: 0.16em;
+  margin-bottom: 13px;
+  color: #b477ee;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-shadow: 0 0 16px rgba(162, 88, 227, 0.17);
 }
 
 .timer-readout__time {
   display: block;
   font-family: "Manrope", sans-serif;
-  font-size: clamp(3.65rem, 5.2vw, 5.55rem);
+  font-size: clamp(3.45rem, 4.85vw, 5.15rem);
   font-weight: 400;
   line-height: 0.9;
   letter-spacing: -0.055em;
   color: #efe9f3;
   font-variant-numeric: tabular-nums;
-  text-shadow:
-    0 0 28px rgba(141, 85, 210, 0.09);
+  text-shadow: 0 0 28px rgba(141, 85, 210, 0.09);
 }
 
 .timer-readout__status {
   display: block;
-  margin-top: 11px;
-  color: #62556b;
-  font-size: 0.48rem;
-  font-weight: 600;
-  letter-spacing: 0.28em;
+  margin-top: 13px;
+  color: #9a78b9;
+  font-size: 0.60rem;
+  font-weight: 700;
+  letter-spacing: 0.30em;
+  text-shadow: 0 0 16px rgba(145, 78, 204, 0.12);
+}
+
+/* O motor do cronômetro expõe o estado atual por meio de data-state. */
+.timer-readout__status[data-state="running"] {
+  color: #c183ff;
+  text-shadow: 0 0 18px rgba(175, 94, 244, 0.32);
+}
+
+.timer-readout__status[data-state="paused"] {
+  color: #9b7cb6;
+}
+
+.timer-readout__status[data-state="ready"] {
+  color: #a689bd;
 }
 
 .controls {
@@ -332,6 +368,16 @@ button {
   transform: translateX(-50%);
 }
 
+/* =========================================================
+   CONTROLES — APARÊNCIA-BASE E TRANSIÇÕES
+   ---------------------------------------------------------
+   Esta seção reúne a aparência comum, as transições e o
+   feedback genérico de hover/active já aprovado. Estados
+   específicos do botão primário, desabilitado, geometria
+   responsiva e regras toque continuam isolados em seus
+   blocos próprios para proteger o comportamento mobile.
+========================================================= */
+
 .control {
   min-width: 0;
   height: 62px;
@@ -340,37 +386,73 @@ button {
   place-content: center;
   gap: 4px;
 
-  border: 1px solid transparent;
+  border: 1px solid rgba(172, 107, 236, 0.055);
   border-radius: 999px;
 
   cursor: pointer;
 
-  color: #aaa0b0;
-  background: transparent;
+  color: rgba(215, 197, 228, 0.78);
+  background: rgba(85, 39, 121, 0.025);
 
   font-size: 0.58rem;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 
+  /*
+    Os tempos finais aprovados são curtos para dar resposta
+    imediata aos controles sem deixar a interface "elástica".
+  */
   transition:
-    transform 120ms ease,
-    color 170ms ease,
-    opacity 170ms ease,
-    background-color 170ms ease,
-    border-color 170ms ease;
+    transform 70ms ease-out,
+    color 85ms ease-out,
+    opacity 85ms ease-out,
+    background-color 85ms ease-out,
+    border-color 85ms ease-out,
+    box-shadow 85ms ease-out,
+    text-shadow 85ms ease-out;
 }
 
+/*
+  Feedback genérico final de interação.
+
+  Estes valores eram redefinidos em vários blocos históricos de
+  refinamento do desktop. Manter o resultado aprovado aqui facilita
+  acompanhar a cascata, enquanto as regras posteriores de mobile e
+  toque ainda podem sobrescrevê-lo normalmente.
+*/
 .control:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: scale(1.035);
+  color: #fff7ff;
+  border-color: rgba(202, 145, 255, 0.52);
+  background:
+    radial-gradient(
+      circle at 50% 50%,
+      rgba(157, 82, 225, 0.23),
+      rgba(107, 49, 164, 0.12) 68%,
+      transparent 100%
+    );
+  box-shadow:
+    inset 0 0 24px rgba(171, 101, 236, 0.12),
+    0 0 24px rgba(127, 60, 190, 0.20);
+  text-shadow: 0 0 13px rgba(203, 151, 255, 0.44);
 }
 
-.control:active:not(:disabled) {
-  transform: scale(0.98);
+.control:hover:not(:disabled) .control__symbol,
+.control:hover:not(:disabled) span:last-child {
+  color: #fff7ff;
+  text-shadow: 0 0 14px rgba(211, 165, 255, 0.52);
 }
 
+
+/*
+  Controles desabilitados preservam o comportamento nativo de desabilitado
+  e usam a opacidade visual final escolhida durante os refinamentos.
+  Manter esse estado em um único lugar impede que valores antigos de
+  opacidade continuem participando da cascata.
+*/
 .control:disabled {
-  opacity: 0.24;
+  opacity: 0.46;
   cursor: not-allowed;
 }
 
@@ -395,8 +477,19 @@ button {
 
 .control__symbol {
   height: 18px;
+  color: #d7b2ff;
   font-size: 1.02rem;
   line-height: 18px;
+  transition:
+    color 85ms ease-out,
+    text-shadow 85ms ease-out;
+}
+
+/* O texto acompanha a mesma velocidade de resposta do símbolo. */
+.control span:last-child {
+  transition:
+    color 85ms ease-out,
+    text-shadow 85ms ease-out;
 }
 
 .control__symbol--pause {
@@ -482,6 +575,11 @@ button {
   border: 0 !important;
 }
 
+/*
+  :focus-visible evidencia o foco pelo teclado sem forçar o mesmo
+  contorno após interações comuns com mouse ou toque. Isso preserva
+  a acessibilidade e mantém a linguagem visual limpa nesses dispositivos.
+*/
 .control:focus-visible {
   outline: 2px solid #ad73ff;
   outline-offset: 3px;
@@ -504,15 +602,17 @@ button {
     height: 365px;
   }
 
-  .creature-frame {
-    width: min(42vw, 650px);
-    height: min(42vw, 650px);
-  }
-
   .controls {
     height: auto;
   }
 }
+
+/* =========================================================
+   ACESSIBILIDADE — MOVIMENTO REDUZIDO
+   ---------------------------------------------------------
+   Respeita a preferência do sistema por menos movimento,
+   removendo transições dos controles sem alterar sua função.
+========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
   .control {
@@ -522,7 +622,13 @@ button {
 
 
 /* =========================================================
-   DESKTOP 05 — VISUAL POLISH
+   DESKTOP — REFINAMENTO VISUAL
+   ---------------------------------------------------------
+   Segunda camada de acabamento do layout-base.
+
+   Estas regras refinam contraste, tipografia, painéis,
+   estatísticas, histórico e feedback dos controles.
+   Elas permanecem depois das regras-base por causa da cascata.
 ========================================================= */
 
 .panel__signal {
@@ -653,34 +759,6 @@ button {
   font-weight: 500;
 }
 
-.control {
-  color: rgba(215, 197, 228, 0.78);
-  border-color: rgba(172, 107, 236, 0.055);
-  background: rgba(85, 39, 121, 0.025);
-  transition:
-    transform 160ms cubic-bezier(.2,.8,.2,1),
-    color 180ms ease,
-    opacity 180ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    text-shadow 180ms ease;
-}
-
-.control:hover:not(:disabled) {
-  transform: translateY(-3px);
-  color: #f3e8ff;
-  border-color: rgba(184, 116, 255, 0.28);
-  background: rgba(123, 55, 184, 0.13);
-  box-shadow:
-    0 8px 25px rgba(75, 25, 120, 0.18),
-    inset 0 1px 0 rgba(255,255,255,0.025);
-  text-shadow: 0 0 12px rgba(183, 120, 255, 0.30);
-}
-
-.control:disabled {
-  opacity: 0.40;
-}
 
 .control--primary {
   color: #fff7ff;
@@ -698,20 +776,22 @@ button {
     inset 0 1px 0 rgba(255,255,255,0.10);
 }
 
-.control__symbol {
-  color: #d7b2ff;
-}
-
 .control--primary .control__symbol {
   color: #fff;
 }
 
 
 /* =========================================================
-   DESKTOP 06 — READING, MOTION & ATMOSPHERE POLISH
+   DESKTOP — REFINAMENTO DE LEITURA, VOLTAS E INTERAÇÃO
+   ---------------------------------------------------------
+   Refinamentos posteriores de leitura e interação.
+
+   Esta camada centraliza a telemetria, simplifica a lista de
+   voltas, melhora o estado vazio e ajusta o feedback visual
+   dos controles sem alterar a estrutura principal do layout.
 ========================================================= */
 
-/* ---------- LEFT CARD: FULL CENTERED TELEMETRY ---------- */
+/* ---------- CARD ESQUERDO: TELEMETRIA TOTALMENTE CENTRALIZADA ---------- */
 
 .panel--stats .panel__header {
   justify-content: center;
@@ -750,7 +830,7 @@ button {
   font-size: 1.46rem;
 }
 
-/* ---------- RIGHT CARD: CLEAN LAPS, NO ZEBRA ---------- */
+/* ---------- CARD DIREITO: VOLTAS LIMPAS, SEM EFEITO ZEBRADO ---------- */
 
 .panel--laps .panel__header {
   margin-bottom: 10px;
@@ -761,7 +841,7 @@ button {
   margin-right: -6px;
   padding: 0 6px 0 0;
 
-  /* keep native/direct scrolling */
+  /* Mantém a rolagem nativa e direta. */
   scroll-behavior: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
@@ -852,7 +932,7 @@ button {
   padding-right: 0;
 }
 
-/* ---------- EMPTY STATE ---------- */
+/* ---------- ESTADO VAZIO ---------- */
 
 .laps-empty {
   gap: 8px;
@@ -883,66 +963,7 @@ button {
   line-height: 1.55;
 }
 
-/* ---------- STOPWATCH LABEL & STATE ---------- */
-
-.timer-readout__label {
-  margin-bottom: 13px;
-  color: #b477ee;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-shadow: 0 0 16px rgba(162, 88, 227, 0.17);
-}
-
-.timer-readout__status {
-  margin-top: 13px;
-  font-size: 0.60rem;
-  font-weight: 700;
-  letter-spacing: 0.30em;
-  color: #9a78b9;
-  text-shadow: 0 0 16px rgba(145, 78, 204, 0.12);
-}
-
-.timer-readout__status[data-state="running"] {
-  color: #c183ff;
-  text-shadow: 0 0 18px rgba(175, 94, 244, 0.32);
-}
-
-.timer-readout__status[data-state="paused"] {
-  color: #9b7cb6;
-}
-
-.timer-readout__status[data-state="ready"] {
-  color: #a689bd;
-}
-
-/* ---------- CONTROLS: FAST INTERNAL HOVER, NO ESCAPE ---------- */
-
-.control {
-  transition:
-    transform 125ms ease,
-    color 125ms ease,
-    opacity 125ms ease,
-    background-color 125ms ease,
-    border-color 125ms ease,
-    box-shadow 125ms ease,
-    text-shadow 125ms ease;
-}
-
-.control:hover:not(:disabled) {
-  transform: scale(1.012);
-  color: #f6ebff;
-  border-color: rgba(191, 125, 255, 0.32);
-  background: rgba(126, 58, 188, 0.15);
-  box-shadow:
-    inset 0 0 18px rgba(146, 73, 214, 0.09),
-    0 0 18px rgba(100, 43, 157, 0.10);
-  text-shadow: 0 0 11px rgba(185, 119, 248, 0.28);
-}
-
-.control:active:not(:disabled) {
-  transform: scale(0.988);
-}
+/* ---------- CONTROLES: HOVER INTERNO RÁPIDO, SEM EXTRAVASAR ---------- */
 
 .control--primary:hover:not(:disabled) {
   transform: scale(1.016);
@@ -956,29 +977,18 @@ button {
     0 0 24px rgba(138, 64, 209, 0.20);
 }
 
-.control:disabled {
-  opacity: 0.46;
-}
-
-.control__symbol,
-.control span:last-child {
-  transition:
-    color 125ms ease,
-    text-shadow 125ms ease;
-}
-
-.control:hover:not(:disabled) .control__symbol,
-.control:hover:not(:disabled) span:last-child {
-  color: #f3e7ff;
-  text-shadow: 0 0 12px rgba(190, 126, 255, 0.28);
-}
 
 
 /* =========================================================
-   DESKTOP 07 — FINAL VISUAL BALANCE BEFORE PERFORMANCE PASS
+   DESKTOP — EQUILÍBRIO VISUAL FINAL
+   ---------------------------------------------------------
+   Ajustes finais de proporção dos dois painéis e do histórico.
+
+   Como estes valores representam a composição visual aprovada,
+   eles deliberadamente sobrescrevem partes dos blocos anteriores.
 ========================================================= */
 
-/* ---------- PANELS: SAME SIZE, LIGHTER FOOTPRINT ---------- */
+/* ---------- PAINÉIS: MESMO TAMANHO, PRESENÇA VISUAL MAIS LEVE ---------- */
 
 .panel {
   width: 280px;
@@ -1001,7 +1011,7 @@ button {
   padding: 22px 16px 14px;
 }
 
-/* ---------- LEFT CARD: KEEP CENTERED, USE SMALLER HEIGHT WELL ---------- */
+/* ---------- CARD ESQUERDO: CENTRALIZADO E AJUSTADO À MENOR ALTURA ---------- */
 
 .panel--stats .panel__header {
   min-height: 50px;
@@ -1025,7 +1035,7 @@ button {
   font-size: 1.34rem;
 }
 
-/* ---------- RIGHT CARD: SAME CENTERED HEADER LANGUAGE ---------- */
+/* ---------- CARD DIREITO: CABEÇALHO COM A MESMA CENTRALIZAÇÃO ---------- */
 
 .panel--laps .panel__header {
   position: relative;
@@ -1051,7 +1061,7 @@ button {
   transform: translateY(-50%);
 }
 
-/* Keep lap rows clean and legible inside the smaller matching card. */
+/* Mantém as linhas de volta limpas e legíveis dentro do card menor correspondente. */
 .laps-list {
   padding-top: 2px;
 }
@@ -1068,57 +1078,14 @@ button {
   font-size: 0.84rem;
 }
 
-/* Empty state now sits in the visual center of the matching card. */
+/* O estado vazio passa a ocupar o centro visual do card correspondente. */
 .laps-empty {
   align-content: center;
   justify-items: center;
   text-align: center;
 }
 
-/* ---------- CONTROLS: MUCH FASTER + STRONGER HOVER ---------- */
-
-.control {
-  transition:
-    transform 70ms ease-out,
-    color 85ms ease-out,
-    opacity 85ms ease-out,
-    background-color 85ms ease-out,
-    border-color 85ms ease-out,
-    box-shadow 85ms ease-out,
-    text-shadow 85ms ease-out;
-}
-
-.control__symbol,
-.control span:last-child {
-  transition:
-    color 85ms ease-out,
-    text-shadow 85ms ease-out;
-}
-
-.control:hover:not(:disabled) {
-  transform: scale(1.035);
-  color: #fff7ff;
-  border-color: rgba(202, 145, 255, 0.52);
-  background:
-    radial-gradient(
-      circle at 50% 50%,
-      rgba(157, 82, 225, 0.23),
-      rgba(107, 49, 164, 0.12) 68%,
-      transparent 100%
-    );
-  box-shadow:
-    inset 0 0 24px rgba(171, 101, 236, 0.12),
-    0 0 24px rgba(127, 60, 190, 0.20);
-  text-shadow:
-    0 0 13px rgba(203, 151, 255, 0.44);
-}
-
-.control:hover:not(:disabled) .control__symbol,
-.control:hover:not(:disabled) span:last-child {
-  color: #fff7ff;
-  text-shadow:
-    0 0 14px rgba(211, 165, 255, 0.52);
-}
+/* ---------- CONTROLES: RESPOSTA MAIS RÁPIDA + HOVER MAIS FORTE ---------- */
 
 .control--primary:hover:not(:disabled) {
   transform: scale(1.045);
@@ -1146,7 +1113,7 @@ button {
   transition-duration: 45ms;
 }
 
-/* Short-height screens keep the exact same card proportions. */
+/* Telas com pouca altura mantêm exatamente as mesmas proporções dos cards. */
 @media (max-height: 790px) {
   .panel,
   .panel--stats,
@@ -1163,7 +1130,7 @@ button {
 
 
 /* =========================================================
-   BEST LAP — VISUAL EMPHASIS
+   MELHOR VOLTA — DESTAQUE VISUAL
 ========================================================= */
 
 .lap-item.is-best::after {
@@ -1178,28 +1145,28 @@ button {
 
 
 /* =========================================================
-   LAPS — BEST ROW SPACING + EMPTY STATE READABILITY
+   VOLTAS — ESPAÇAMENTO DA MELHOR VOLTA + LEGIBILIDADE DO ESTADO VAZIO
 ========================================================= */
 
-/* Give the best-lap row enough vertical room for the BEST label. */
+/* Dá à linha da melhor volta espaço vertical suficiente para o rótulo BEST. */
 .lap-item.is-best {
   min-height: 56px;
   padding-bottom: 7px;
 }
 
-/* Keep BEST away from the bottom divider. */
+/* Mantém o rótulo BEST afastado do divisor inferior. */
 .lap-item.is-best::after {
   right: 10px;
   bottom: 7px;
 }
 
-/* Preserve the left accent while giving it a little more breathing room. */
+/* Preserva o destaque lateral esquerdo e acrescenta um pouco mais de respiro. */
 .lap-item.is-best::before {
   top: 48%;
   height: 50%;
 }
 
-/* Stronger and more readable empty-state copy. */
+/* Texto do estado vazio mais forte e legível. */
 .laps-empty strong {
   font-size: 0.86rem;
   font-weight: 700;
@@ -1215,11 +1182,13 @@ button {
 
 
 /* =========================================================
-   RESPONSIVE 00 — WORKSPACE FLUIDA / TABLET HORIZONTAL
+   RESPONSIVIDADE — TABLET / DESKTOP COMPACTO (800–1399px)
    ---------------------------------------------------------
-   A viewport define uma área segura centralizada. Dentro dela,
+   A área visível define uma área segura centralizada. Dentro dela,
    os dois painéis laterais e o palco central dividem o espaço
-   disponível sem ultrapassar as bordas. O empilhamento só
+   disponível sem ultrapassar as bordas.
+
+   O layout ainda permanece horizontal. O empilhamento só
    começa abaixo de 800px.
 ========================================================= */
 
@@ -1335,47 +1304,6 @@ button {
     overflow: visible;
   }
 
-  .creature-frame {
-    top: 43%;
-    width: min(86.5%, 575px);
-    height: auto;
-    aspect-ratio: 1;
-  }
-
-  .timer-readout {
-    top: 41%;
-    max-width: 92%;
-  }
-
-  .timer-readout__label {
-    margin-bottom: 10px;
-    font-size: clamp(0.58rem, 0.78vw, 0.68rem);
-  }
-
-  .timer-readout__time {
-    font-size: clamp(2.65rem, 4.7vw, 4.65rem);
-  }
-
-  .timer-readout__status {
-    margin-top: 10px;
-    font-size: clamp(0.49rem, 0.66vw, 0.57rem);
-  }
-
-  .controls {
-    bottom: clamp(14px, 2vh, 24px);
-    width: min(520px, calc(100% - 12px));
-    gap: 5px;
-    padding: 6px;
-  }
-
-  .control {
-    height: clamp(50px, 5vw, 58px);
-    font-size: clamp(0.49rem, 0.68vw, 0.56rem);
-  }
-
-  .control__symbol {
-    font-size: clamp(0.84rem, 1.15vw, 0.98rem);
-  }
 }
 
 /* Tablet estreito: mesma linha, com margens e cards menores. */
@@ -1477,42 +1405,23 @@ button {
     line-height: 1.42;
   }
 
-  .creature-frame {
-    width: min(88.5%, 470px);
-  }
-
-  .timer-readout__label {
-    margin-bottom: 8px;
-    font-size: 0.54rem;
-  }
-
-  .timer-readout__time {
-    font-size: clamp(2.25rem, 4.9vw, 3.20rem);
-  }
-
-  .timer-readout__status {
-    margin-top: 8px;
-    font-size: 0.46rem;
-  }
-
-  .controls {
-    bottom: 14px;
-    width: min(440px, calc(100% - 8px));
-    padding: 5px;
-    gap: 4px;
-  }
-
-  .control {
-    height: 48px;
-    font-size: 0.47rem;
-  }
-
-  .control__symbol {
-    height: 15px;
-    font-size: 0.80rem;
-    line-height: 15px;
-  }
 }
+
+/* =========================================================
+   LAYOUT MOBILE — <= 799px
+   ---------------------------------------------------------
+   Abaixo de 800px a composição deixa de ser uma versão menor
+   do desktop e passa a usar uma arquitetura própria:
+
+   - a página volta a permitir scroll vertical;
+   - o workspace muda de Grid para Flexbox em coluna;
+   - a criatura continua como elemento protagonista;
+   - Estatísticas e Voltas são empilhados abaixo do palco;
+   - os controles recebem comportamento específico para toque.
+
+   Alterações nesta faixa devem ser testadas com atenção porque
+   várias regras posteriores também atuam sobre o mesmo mobile.
+========================================================= */
 
 @media (max-width: 799px) {
   html,
@@ -1582,61 +1491,17 @@ button {
     overflow: visible;
   }
 
-  .creature-frame {
-    position: absolute;
-    left: 50%;
-    top: 43%;
-    width: min(94vw, 520px);
-    height: auto;
-    aspect-ratio: 1;
-    transform: translate(-50%, -50%);
-  }
 
-  .timer-readout {
-    top: 41%;
-  }
-
-  .timer-readout__label {
-    margin-bottom: 11px;
-    font-size: clamp(0.62rem, 2.5vw, 0.72rem);
-  }
-
-  .timer-readout__time {
-    font-size: clamp(2.85rem, 13vw, 4.35rem);
-  }
-
-  .timer-readout__status {
-    margin-top: 11px;
-    font-size: clamp(0.53rem, 2.2vw, 0.60rem);
-  }
-
-  .controls {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    align-self: end;
-    justify-self: center;
-    width: min(92vw, 430px);
-    margin: 0 auto 12px;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-    padding: 7px;
-    border-radius: 26px;
+  /*
+    Todo botão principal também possui a classe .control; portanto, o
+    seletor genérico já o contempla aqui. Manter apenas um seletor evita
+    regras mobile duplicadas sem alterar o resultado calculado pelo navegador.
+  */
+  .control:hover:not(:disabled) {
     transform: none;
   }
 
-  .control {
-    height: 58px;
-    border-radius: 20px;
-  }
-
-  .control:hover:not(:disabled),
-  .control--primary:hover:not(:disabled) {
-    transform: none;
-  }
-
-  .control:active:not(:disabled),
-  .control--primary:active:not(:disabled) {
+  .control:active:not(:disabled) {
     transform: scale(0.985);
   }
 
@@ -1737,49 +1602,6 @@ button {
     min-height: calc(100svh - 104px);
   }
 
-  .creature-frame {
-    top: 42%;
-    width: min(96vw, 460px);
-    height: auto;
-    aspect-ratio: 1;
-  }
-
-  .timer-readout {
-    top: 40.5%;
-  }
-
-  .timer-readout__label {
-    margin-bottom: 9px;
-    font-size: 0.60rem;
-  }
-
-  .timer-readout__time {
-    font-size: clamp(2.55rem, 13.2vw, 3.45rem);
-  }
-
-  .timer-readout__status {
-    margin-top: 9px;
-    font-size: 0.52rem;
-  }
-
-  .controls {
-    width: calc(100% - 4px);
-    gap: 6px;
-    padding: 6px;
-    border-radius: 23px;
-  }
-
-  .control {
-    height: 54px;
-    border-radius: 17px;
-    font-size: 0.54rem;
-  }
-
-  .control__symbol {
-    height: 16px;
-    font-size: 0.94rem;
-    line-height: 16px;
-  }
 
   .panel {
     border-radius: 16px;
@@ -1821,44 +1643,102 @@ button {
     min-height: calc(100svh - 98px);
   }
 
-  .timer-readout__time {
-    font-size: 2.35rem;
-  }
-
   .panel--stats .stat dd {
     font-size: 0.86rem;
   }
 }
 
 /* =========================================================
-   RESPONSIVE 06 — FINAL ALIGNMENT & PRIMARY INTERACTION
+   PALCO DA CRIATURA — GEOMETRIA RESPONSIVA CONSOLIDADA
    ---------------------------------------------------------
-   Uma única referência vertical centraliza criatura e timer.
-   O botão primário usa o mesmo acabamento em todas as telas,
-   com hover restrito a dispositivos que realmente possuem
-   ponteiro e feedback de toque via :active no mobile.
-========================================================= */
+   O canvas da criatura mantém uma única regra-base de posição.
+   Apenas seu tamanho e o centro vertical mudam por ponto de quebra.
 
-/* ---------- SHARED ORGANISM / TIMER CENTER ---------- */
+   A variável --organism-center-y é compartilhada com o cronômetro,
+   garantindo que criatura e cronômetro permaneçam alinhados como
+   uma única composição em desktop, tablet e mobile.
+========================================================= */
 
 .center-stage {
   --organism-center-y: 43%;
 }
 
-.creature-frame,
+.creature-frame {
+  position: absolute;
+  left: 50%;
+  top: var(--organism-center-y);
+  width: min(47vw, 760px);
+  height: min(47vw, 760px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
 .timer-readout {
   top: var(--organism-center-y);
 }
 
-/* Em celulares estreitos, a composição inteira sobe levemente,
-   mas criatura e cronômetro continuam compartilhando o mesmo centro. */
-@media (max-width: 479px) {
-  .center-stage {
-    --organism-center-y: 42%;
+/* Em desktops baixos, reduzimos a criatura sem alterar sua posição. */
+@media (min-width: 1400px) and (max-height: 790px) {
+  .creature-frame {
+    width: min(42vw, 650px);
+    height: min(42vw, 650px);
   }
 }
 
-/* ---------- PRIMARY CONTROL: START / RESUME ---------- */
+/* Desktop compacto / tablet horizontal. */
+@media (min-width: 800px) and (max-width: 1399px) {
+  .creature-frame {
+    width: min(86.5%, 575px);
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
+
+/* Tablet estreito: um pouco mais de ocupação proporcional. */
+@media (min-width: 800px) and (max-width: 999px) {
+  .creature-frame {
+    width: min(88.5%, 470px);
+  }
+}
+
+/* Mobile é uma composição própria: criatura grande e protagonista. */
+@media (max-width: 799px) {
+  .center-stage {
+    --organism-center-y: 40%;
+  }
+
+  .creature-frame {
+    width: min(94vw, 520px);
+    height: auto;
+    aspect-ratio: 1;
+  }
+}
+
+/* Celulares estreitos sobem levemente o conjunto inteiro. */
+@media (max-width: 479px) {
+  .center-stage {
+    --organism-center-y: 39.5%;
+  }
+}
+
+/* Proteção final para telas extremamente estreitas. */
+@media (max-width: 359px) {
+  .creature-frame {
+    width: min(92vw, 420px);
+  }
+}
+
+/* =========================================================
+   CONTROLE PRINCIPAL — ESTADOS FINAIS DE INTERAÇÃO
+   ---------------------------------------------------------
+   O botão principal usa o mesmo acabamento em todas as telas.
+
+   Hover é aplicado somente quando o dispositivo realmente
+   possui ponteiro fino; no toque, o feedback fica concentrado
+   em :active para evitar estados de hover "presos".
+========================================================= */
+
+/* ---------- CONTROLE PRINCIPAL: INICIAR / RETOMAR ---------- */
 
 .control--primary {
   color: #f8f2fc;
@@ -1919,6 +1799,7 @@ button {
   }
 }
 
+/* A ação principal recebe um tratamento adicional de foco sobre o contorno genérico. */
 .control--primary:focus-visible:not(:disabled) {
   transform: none;
   border-color: rgba(212, 169, 255, 0.58);
@@ -1944,17 +1825,161 @@ button {
 }
 
 /* =========================================================
-   RESPONSIVE 07 — MOBILE TIMER FIT
+   CONTROLES — GEOMETRIA RESPONSIVA CONSOLIDADA
    ---------------------------------------------------------
-   Mantém o mesmo centro da criatura e reduz somente a escala
-   do conjunto do cronômetro para que ele respire dentro do
-   vão interno, sem tocar visualmente nas fibras laterais.
+   Esta seção reúne somente a geometria responsiva dos controles:
+   posição, largura, colunas, espaçamento e dimensões.
+
+   Aparência, hover, active, desabilitado, focus e regras específicas
+   de toque permanecem separados. Isso reduz a cascata histórica
+   sem misturar comportamento visual com estrutura de layout.
 ========================================================= */
 
+/* Desktop compacto / tablet horizontal. */
+@media (min-width: 800px) and (max-width: 1399px) {
+  .controls {
+    bottom: clamp(14px, 2vh, 24px);
+    width: min(520px, calc(100% - 12px));
+    gap: 5px;
+    padding: 6px;
+  }
+
+  .control {
+    height: clamp(50px, 5vw, 58px);
+    font-size: clamp(0.49rem, 0.68vw, 0.56rem);
+  }
+
+  .control__symbol {
+    font-size: clamp(0.84rem, 1.15vw, 0.98rem);
+  }
+}
+
+/* Tablet estreito. */
+@media (min-width: 800px) and (max-width: 999px) {
+  .controls {
+    bottom: 14px;
+    width: min(440px, calc(100% - 8px));
+    padding: 5px;
+    gap: 4px;
+  }
+
+  .control {
+    height: 48px;
+    font-size: 0.47rem;
+  }
+
+  .control__symbol {
+    height: 15px;
+    font-size: 0.80rem;
+    line-height: 15px;
+  }
+}
+
+/* Mobile troca a cápsula horizontal por uma grade 2 × 2. */
+@media (max-width: 799px) {
+  .controls {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    align-self: end;
+    justify-self: center;
+    width: min(92vw, 430px);
+    margin: 0 auto 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+    padding: 7px;
+    border-radius: 26px;
+    transform: none;
+  }
+
+  .control {
+    height: 58px;
+    border-radius: 20px;
+  }
+}
+
+/* Telefones estreitos compactam a grade sem alterar sua estrutura. */
+@media (max-width: 479px) {
+  .controls {
+    width: calc(100% - 4px);
+    gap: 6px;
+    padding: 6px;
+    border-radius: 23px;
+  }
+
+  .control {
+    height: 54px;
+    border-radius: 17px;
+    font-size: 0.54rem;
+  }
+
+  .control__symbol {
+    height: 16px;
+    font-size: 0.94rem;
+    line-height: 16px;
+  }
+}
+
+/* =========================================================
+   CRONÔMETRO — ESCALA RESPONSIVA E ALINHAMENTO ÓPTICO
+   ---------------------------------------------------------
+   Todo o dimensionamento do cronômetro dependente da área visível
+   fica concentrado aqui.
+
+   Manter essas regras juntas evita que o cronômetro seja redimensionado
+   repetidamente por antigos ajustes espalhados em media queries.
+   Os valores abaixo reproduzem o resultado visual aprovado para
+   desktop, tablet e mobile sem alterar a criatura.
+========================================================= */
+
+/* Desktop grande mantém o deslocamento óptico aprovado. */
+@media (min-width: 1400px) {
+  .timer-readout {
+    margin-left: -1.4%;
+  }
+}
+
+/* Desktop compacto / tablet horizontal. */
+@media (min-width: 800px) and (max-width: 1399px) {
+  .timer-readout {
+    max-width: 92%;
+    margin-left: -1.8%;
+  }
+
+  .timer-readout__label {
+    margin-bottom: 10px;
+    font-size: clamp(0.58rem, 0.78vw, 0.68rem);
+  }
+
+  .timer-readout__time {
+    font-size: clamp(2.50rem, 4.35vw, 4.30rem);
+  }
+
+  .timer-readout__status {
+    margin-top: 10px;
+    font-size: clamp(0.49rem, 0.66vw, 0.57rem);
+  }
+}
+
+/* Tablets estreitos mantêm a mesma escala do cronômetro, mas usam rótulos mais compactos. */
+@media (min-width: 800px) and (max-width: 999px) {
+  .timer-readout__label {
+    margin-bottom: 8px;
+    font-size: 0.54rem;
+  }
+
+  .timer-readout__status {
+    margin-top: 8px;
+    font-size: 0.46rem;
+  }
+}
+
+/* Composição mobile. */
 @media (max-width: 799px) {
   .timer-readout {
     width: min(78vw, 360px);
     max-width: 78vw;
+    margin-left: -2.2%;
   }
 
   .timer-readout__label {
@@ -1963,7 +1988,7 @@ button {
   }
 
   .timer-readout__time {
-    font-size: clamp(2.45rem, 10.6vw, 3.55rem);
+    font-size: clamp(2.35rem, 9.9vw, 3.35rem);
     line-height: 0.92;
     letter-spacing: -0.06em;
     white-space: nowrap;
@@ -1975,43 +2000,11 @@ button {
   }
 }
 
+/* Celulares: visor um pouco mais estreito e com ajuste óptico. */
 @media (max-width: 479px) {
   .timer-readout {
     width: min(76vw, 330px);
     max-width: 76vw;
-  }
-
-  .timer-readout__time {
-    font-size: clamp(2.35rem, 10.2vw, 3.10rem);
-  }
-}
-
-@media (max-width: 359px) {
-  .timer-readout__time {
-    font-size: 2.25rem;
-  }
-}
-
-/* =========================================================
-   RESPONSIVE 08 — TIMER OPTICAL CENTERING
-   ---------------------------------------------------------
-   Ajuste óptico final: desloca somente o conteúdo textual
-   do cronômetro levemente para a esquerda e reduz sua escala
-   no mobile, preservando criatura, centro vertical e controles.
-========================================================= */
-
-@media (max-width: 799px) {
-  .timer-readout {
-    margin-left: -2.2%;
-  }
-
-  .timer-readout__time {
-    font-size: clamp(2.35rem, 9.9vw, 3.35rem);
-  }
-}
-
-@media (max-width: 479px) {
-  .timer-readout {
     margin-left: -2.6%;
   }
 
@@ -2020,6 +2013,7 @@ button {
   }
 }
 
+/* Celulares muito estreitos precisam de um limite mínimo fixo para evitar sobreposição com as fibras. */
 @media (max-width: 359px) {
   .timer-readout {
     margin-left: -3%;
@@ -2031,84 +2025,32 @@ button {
 }
 
 /* =========================================================
-   RESPONSIVE 09 — GLOBAL TIMER OPTICAL CENTERING
+   CONTROLES POR TOQUE — RESET DO HOVER E FEEDBACK DE PRESSIONAMENTO
    ---------------------------------------------------------
-   Aplica o mesmo princípio aprovado no mobile também às
-   telas maiores: pequeno deslocamento óptico para a esquerda
-   e redução discreta da escala do tempo.
-========================================================= */
+   Telas sensíveis ao toque podem manter :hover após um toque, mesmo
+   sem existir um ponteiro persistente sobre o elemento. Se os estilos
+   de hover do desktop permanecessem ativos, o botão poderia parecer
+   "preso" depois que o usuário retirasse o dedo.
 
-/* Desktop grande */
-@media (min-width: 1400px) {
-  .timer-readout {
-    margin-left: -1.4%;
-  }
+   Esta media query possui, portanto, duas responsabilidades:
 
-  .timer-readout__time {
-    font-size: clamp(3.45rem, 4.85vw, 5.15rem);
-  }
-}
+   1. restaurar a aparência neutra aprovada dos controles quando um
+      dispositivo toque expõe um estado :hover sintético ou persistente;
+   2. manter uma resposta curta em :active para que o toque ainda tenha
+      sensação física de pressionamento.
 
-/* Desktop compacto / tablet horizontal */
-@media (min-width: 800px) and (max-width: 1399px) {
-  .timer-readout {
-    margin-left: -1.8%;
-  }
-
-  .timer-readout__time {
-    font-size: clamp(2.50rem, 4.35vw, 4.30rem);
-  }
-}
-
-/* =========================================================
-   RESPONSIVE 11 — MOBILE AS PRIMARY COMPOSITION
-   ---------------------------------------------------------
-   Mobile é tratado como uma composição própria.
-   A criatura permanece grande e protagonista abaixo de 800px,
-   sem tentar manter continuidade artificial com o tablet.
-========================================================= */
-
-@media (max-width: 799px) {
-  .creature-frame {
-    width: min(94vw, 520px);
-  }
-}
-
-/* Apenas uma proteção discreta para telas realmente estreitas. */
-@media (max-width: 359px) {
-  .creature-frame {
-    width: min(92vw, 420px);
-  }
-}
-
-/* =========================================================
-   RESPONSIVE 12 — MOBILE VERTICAL COMPOSITION
-   ---------------------------------------------------------
-   Aproveita melhor o espaço entre o título e a criatura.
-   Move criatura + cronômetro juntos para cima, preservando
-   tamanho, alinhamento interno e posição dos controles.
-========================================================= */
-
-@media (max-width: 799px) {
-  .center-stage {
-    --organism-center-y: 40%;
-  }
-}
-
-@media (max-width: 479px) {
-  .center-stage {
-    --organism-center-y: 39.5%;
-  }
-}
-
-/* =========================================================
-   TOUCH — PREVENT STICKY CONTROL HOVER
-   ---------------------------------------------------------
-   Em dispositivos touch, remove o hover persistente que pode
-   permanecer visualmente ativo após tocar em um controle.
+   Estas declarações repetem intencionalmente as cores-base aprovadas.
+   Não é redundância acidental: elas precisam sobrescrever as regras
+   genéricas de hover do desktop posteriormente na cascata em dispositivos
+   de ponteiro impreciso ou sem hover real.
 ========================================================= */
 
 @media (hover: none), (pointer: coarse) {
+  /*
+    Neutraliza o feedback de hover do desktop em dispositivos toque.
+    Os valores abaixo correspondem ao estado de repouso aprovado
+    dos controles secundários.
+  */
   .control:hover:not(:disabled) {
     transform: none;
     color: rgba(215, 197, 228, 0.78);
@@ -2118,46 +2060,46 @@ button {
     text-shadow: none;
   }
 
+  /* Restaura o tratamento de repouso do símbolo e do texto após um hover sintético. */
   .control:hover:not(:disabled) .control__symbol,
   .control:hover:not(:disabled) span:last-child {
     color: #d7b2ff;
     text-shadow: none;
   }
 
+  /*
+    Dá aos toques uma resposta física mais forte, porém muito curta.
+    :active existe somente enquanto o dedo está pressionando o controle.
+  */
   .control:active:not(:disabled) {
     transform: scale(0.965);
-
     color: #f3e8ff;
-
     border-color: rgba(190, 125, 255, 0.55);
-
     background:
       radial-gradient(
         circle at 50% 50%,
         rgba(151, 77, 220, 0.22),
         rgba(85, 39, 121, 0.08) 68%
       );
-
     box-shadow:
       inset 0 0 22px rgba(167, 94, 235, 0.12),
       0 0 18px rgba(149, 77, 211, 0.14);
   }
 
+  /* Texto e ícone ficam mais brilhantes apenas durante o pressionamento físico. */
   .control:active:not(:disabled) .control__symbol,
   .control:active:not(:disabled) span:last-child {
     color: #f1dcff;
-
-    text-shadow:
-      0 0 10px rgba(192, 133, 255, 0.45);
+    text-shadow: 0 0 10px rgba(192, 133, 255, 0.45);
   }
 }
 
 /* =========================================================
-   MOBILE PERFORMANCE — BACKDROP FILTER
+   DESEMPENHO MOBILE — FILTRO DE FUNDO
    ---------------------------------------------------------
-   Dynamic backdrop blur is disabled on mobile to prevent
-   expensive recomposition over the animated canvas.
-   Desktop visual effects remain unchanged.
+   O desfoque dinâmico de fundo é desativado no mobile para evitar
+   recomposições caras sobre o canvas animado.
+   Os efeitos visuais do desktop permanecem inalterados.
 ========================================================= */
 
 @media (max-width: 799px) {

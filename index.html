@@ -1,12 +1,47 @@
 <!doctype html>
 <html lang="en">
   <head>
+    <!-- =====================================================
+         DOCUMENT CONFIGURATION
+         -----------------------------------------------------
+         UTF-8 permite que caracteres especiais e símbolos
+         sejam interpretados corretamente pelo navegador.
+    ====================================================== -->
+
     <meta charset="UTF-8" />
+
+    <!-- =====================================================
+         MOBILE VIEWPORT
+         -----------------------------------------------------
+         width=device-width:
+         usa a largura real da tela como largura da página.
+
+         initial-scale=1.0:
+         inicia a página sem ampliação.
+
+         maximum-scale=1.0 + user-scalable=no:
+         impedem zoom manual no mobile.
+
+         No SYVRON isso é uma decisão de experiência:
+         evita zoom acidental durante a interação com os
+         controles do cronômetro.
+    ====================================================== -->
+
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
+
+    <!--
+      Cor utilizada por navegadores compatíveis em partes
+      da interface do sistema, como a barra do navegador.
+    -->
     <meta name="theme-color" content="#020103" />
+
+    <!--
+      Descrição resumida da página para mecanismos de busca
+      e outros serviços que utilizem os metadados do documento.
+    -->
     <meta
       name="description"
       content="SYVRON — cronômetro interativo com organismo digital responsivo."
@@ -14,42 +49,96 @@
 
     <title>SYVRON</title>
 
-    <!-- Favicons -->
+    <!-- =====================================================
+         FAVICONS / APP ICONS
+         -----------------------------------------------------
+         Diferentes tamanhos são fornecidos para que browsers,
+         sistemas operacionais e atalhos possam escolher o
+         arquivo mais adequado para cada contexto.
+    ====================================================== -->
+
+    <!-- Formato tradicional de favicon. -->
     <link rel="icon" type="image/x-icon" href="./assets/icons/favicon.ico" />
+
+    <!-- Favicons PNG utilizados principalmente por browsers. -->
     <link
       rel="icon"
       type="image/png"
       sizes="32x32"
       href="./assets/icons/favicon-32x32.png"
     />
+
     <link
       rel="icon"
       type="image/png"
       sizes="16x16"
       href="./assets/icons/favicon-16x16.png"
     />
+
+    <!-- Ícone utilizado ao adicionar o site à tela inicial no iOS. -->
     <link
       rel="apple-touch-icon"
       sizes="180x180"
       href="./assets/icons/apple-touch-icon.png"
     />
+
+    <!--
+      Manifesto com informações utilizadas quando o site é
+      instalado/adicionado como aplicação em plataformas
+      compatíveis.
+    -->
     <link rel="manifest" href="./assets/icons/site.webmanifest" />
 
-    <!-- Fonts -->
+    <!-- =====================================================
+         TYPOGRAPHY
+         -----------------------------------------------------
+         preconnect antecipa a conexão com os servidores
+         utilizados pelo Google Fonts, reduzindo parte do
+         custo necessário para carregar a fonte posteriormente.
+    ====================================================== -->
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+    <!-- Fonte principal da interface. -->
     <link
       href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
 
+    <!-- =====================================================
+         PROJECT STYLES
+    ====================================================== -->
+
     <link rel="stylesheet" href="./css/style.css" />
   </head>
 
   <body>
+    <!-- =====================================================
+         AMBIENT PARTICLES
+         -----------------------------------------------------
+         Canvas responsável exclusivamente pelas partículas
+         que formam o ambiente visual de fundo.
+
+         aria-hidden="true" remove esse elemento decorativo da
+         árvore de acessibilidade, pois ele não possui conteúdo
+         necessário para compreender ou operar o cronômetro.
+    ====================================================== -->
+
     <canvas id="ambient-particles" aria-hidden="true"></canvas>
 
+    <!-- =====================================================
+         APPLICATION
+         -----------------------------------------------------
+         Container principal da interface do SYVRON.
+    ====================================================== -->
+
     <main class="desktop-app">
+      <!-- ===================================================
+           HEADER / BRAND
+      ==================================================== -->
+
       <header class="desktop-header">
         <div class="brand" aria-label="SYVRON">
           <span class="brand__name">SYVRON</span>
@@ -57,7 +146,27 @@
         </div>
       </header>
 
+      <!-- ===================================================
+           MAIN WORKSPACE
+           ---------------------------------------------------
+           A área principal possui três regiões:
+
+           1. estatísticas da sessão;
+           2. criatura + cronômetro + controles;
+           3. histórico de voltas.
+      ==================================================== -->
+
       <section class="desktop-workspace">
+        <!-- =================================================
+             SESSION STATISTICS
+             -------------------------------------------------
+             <aside> é utilizado porque estas informações
+             complementam o conteúdo principal do cronômetro.
+
+             aria-labelledby conecta semanticamente o painel
+             ao seu título visível.
+        ================================================== -->
+
         <aside class="panel panel--stats" aria-labelledby="stats-title">
           <div class="panel__header">
             <div>
@@ -65,35 +174,78 @@
               <h2 id="stats-title">Statistics</h2>
             </div>
 
+            <!-- Elemento puramente visual. -->
             <span class="panel__signal" aria-hidden="true"></span>
           </div>
 
+          <!--
+            <dl> representa uma lista de termos e valores.
+
+            Neste caso:
+            dt = nome da estatística;
+            dd = valor correspondente.
+          -->
           <dl class="stats-grid">
             <div class="stat">
               <dt>Total Time</dt>
+
+              <!-- Atualizado dinamicamente pelo JavaScript. -->
               <dd id="stat-total">00:00.00</dd>
             </div>
 
             <div class="stat">
               <dt>Best Lap</dt>
+
+              <!--
+                O travessão representa a ausência de uma volta
+                enquanto nenhuma LAP tiver sido registrada.
+              -->
               <dd id="stat-best">—</dd>
             </div>
 
             <div class="stat">
               <dt>Laps</dt>
+
+              <!-- Quantidade total de voltas registradas. -->
               <dd id="stat-count">0</dd>
             </div>
           </dl>
         </aside>
 
+        <!-- =================================================
+             STOPWATCH / CENTER STAGE
+             -------------------------------------------------
+             Região principal e interativa da aplicação.
+        ================================================== -->
+
         <section class="center-stage" aria-label="SYVRON stopwatch">
+          <!-- ===============================================
+               DIGITAL ORGANISM
+               ------------------------------------------------
+               O canvas é apenas visual.
+
+               Toda a geometria e animação da criatura são
+               desenhadas pelo JavaScript.
+          ================================================ -->
+
           <div class="creature-frame" aria-hidden="true">
             <canvas id="organism"></canvas>
           </div>
 
+          <!-- ===============================================
+               TIMER READOUT
+          ================================================ -->
+
           <div class="timer-readout">
             <span class="timer-readout__label"> STOPWATCH </span>
 
+            <!--
+              <output> é semanticamente adequado para um valor
+              produzido pela aplicação.
+
+              O JavaScript atualiza seu conteúdo enquanto o
+              cronômetro está em execução.
+            -->
             <output
               id="timer-display"
               class="timer-readout__time"
@@ -102,10 +254,32 @@
               00:00.00
             </output>
 
+            <!--
+              Estado atual da aplicação:
+
+              READY
+              RUNNING
+              PAUSED
+
+              O JavaScript também utiliza esse elemento para
+              refletir visualmente as mudanças de estado.
+            -->
             <span id="timer-status" class="timer-readout__status"> READY </span>
           </div>
 
+          <!-- ===============================================
+               STOPWATCH CONTROLS
+               ------------------------------------------------
+               Os IDs são utilizados pelo main.js para conectar
+               cada botão à ação correspondente.
+
+               O atributo disabled também impede interação
+               quando determinada ação não faz sentido para
+               o estado atual do cronômetro.
+          ================================================ -->
+
           <div class="controls" aria-label="Stopwatch controls">
+            <!-- RESET -->
             <button
               id="reset-button"
               class="control control--secondary"
@@ -113,18 +287,26 @@
               disabled
             >
               <span class="control__symbol" aria-hidden="true"> ↻ </span>
+
               <span>Reset</span>
             </button>
 
+            <!-- START / RESUME -->
             <button
               id="primary-button"
               class="control control--primary"
               type="button"
             >
               <span class="control__symbol" aria-hidden="true"> ▶ </span>
+
+              <!--
+                O JavaScript troca este texto entre
+                "Start" e "Resume".
+              -->
               <span id="primary-label"> Start </span>
             </button>
 
+            <!-- LAP -->
             <button
               id="lap-button"
               class="control control--secondary"
@@ -132,9 +314,11 @@
               disabled
             >
               <span class="control__symbol" aria-hidden="true"> ⚑ </span>
+
               <span>Lap</span>
             </button>
 
+            <!-- PAUSE -->
             <button
               id="pause-button"
               class="control control--secondary"
@@ -147,30 +331,70 @@
               >
                 Ⅱ
               </span>
+
               <span>Pause</span>
             </button>
           </div>
         </section>
 
+        <!-- =================================================
+             LAP HISTORY
+             -------------------------------------------------
+             Exibe todas as voltas registradas durante a sessão.
+        ================================================== -->
+
         <aside class="panel panel--laps" aria-labelledby="laps-title">
           <div class="panel__header">
             <div>
               <span class="panel__eyebrow"> HISTORY </span>
+
               <h2 id="laps-title">Laps</h2>
             </div>
 
+            <!--
+              Badge atualizado pelo JavaScript com a quantidade
+              atual de voltas.
+            -->
             <span id="laps-count-badge" class="panel__count"> 0 </span>
           </div>
 
+          <!--
+            Estado vazio exibido enquanto nenhuma volta tiver
+            sido registrada.
+          -->
           <div id="laps-empty" class="laps-empty">
             <span class="laps-empty__icon" aria-hidden="true"> ◎ </span>
+
             <strong>No laps yet</strong>
+
             <small> Start the stopwatch and record your first lap. </small>
           </div>
 
+          <!--
+            As <li> correspondentes às voltas são criadas
+            dinamicamente pelo LapsView.
+
+            aria-live="polite" permite que tecnologias
+            assistivas anunciem novas voltas sem interromper
+            imediatamente o conteúdo que já está sendo lido.
+          -->
           <ol id="laps-list" class="laps-list" aria-live="polite"></ol>
         </aside>
       </section>
+
+      <!-- ===================================================
+           ACCESSIBILITY LIVE REGION
+           ---------------------------------------------------
+           Área invisível visualmente, mas disponível para
+           leitores de tela.
+
+           O JavaScript escreve mensagens aqui quando ações
+           importantes acontecem, como Start, Pause, Lap
+           e Reset.
+
+           aria-atomic="true" solicita que a mensagem inteira
+           seja anunciada quando seu conteúdo mudar.
+      ==================================================== -->
 
       <div
         id="live-status"
@@ -179,6 +403,14 @@
         aria-atomic="true"
       ></div>
     </main>
+
+    <!-- =====================================================
+         JAVASCRIPT ENTRY POINT
+         -----------------------------------------------------
+         type="module" habilita ES Modules, permitindo que
+         main.js utilize import/export para dividir o projeto
+         em módulos menores e com responsabilidades específicas.
+    ====================================================== -->
 
     <script type="module" src="./js/main.js"></script>
   </body>
